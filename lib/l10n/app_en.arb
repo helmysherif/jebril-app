@@ -1,3 +1,9 @@
 {
-  "name" : "Mohamed Gebril"
+  "name" : "Mohamed Gebril",
+  "rewayat" : "Rewayat",
+  "quran" : "The recited Qur’an",
+  "prayers" : "Prayers",
+  "tarawih" : "Tarawih and Qiyam prayers",
+  "more" : "more",
+  "wishlist" : "my wishlist"
 }

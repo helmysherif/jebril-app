@@ -5,7 +5,7 @@ import 'package:jebril_app/screens/home.dart';
 import 'package:jebril_app/screens/splash_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-void main() {
+void main() async {
   runApp(ChangeNotifierProvider(
     create: (content) => LangsProvider(),
     child: const MyApp())
