@@ -3,13 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 class CardItem extends StatelessWidget {
   final String image;
   final String label;
-  final VoidCallback onPressed;
-  const CardItem({super.key , required this.onPressed , required this.label , required this.image});
+  final Function(int) onPressed;
+  final int id;
+  const CardItem({super.key , required this.onPressed , required this.label , required this.image , required this.id});
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap:onPressed,
+      onTap:() => onPressed(id),
       child: Container(
+        padding: const EdgeInsets.symmetric(horizontal:10 , vertical:0),
         decoration: BoxDecoration(
           color:Colors.white,
           borderRadius:BorderRadius.circular(15),
@@ -28,10 +30,10 @@ class CardItem extends StatelessWidget {
             Image.asset(image , width:100,height:70),
             const SizedBox(height:20),
             Text(label , style:GoogleFonts.cairo(
-              fontSize:22,
+              fontSize:20,
               fontWeight: FontWeight.w600,
               color: const Color(0xff606060)
-            ))
+            ),textAlign:TextAlign.center)
           ],
         ),
       ),

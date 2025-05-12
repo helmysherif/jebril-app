@@ -1,0 +1,104 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:jebril_app/Sura.dart';
+class SuraItem extends StatelessWidget {
+  final Surah suraDetails;
+  final Function(int) onAudioPlay;
+  final bool isPlaying;
+  const SuraItem({super.key , required this.isPlaying , required this.suraDetails , required this.onAudioPlay});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding:const EdgeInsets.symmetric(horizontal:10 , vertical:15),
+      margin:const EdgeInsets.symmetric(vertical:10 , horizontal:20),
+        decoration: BoxDecoration(
+          color:Colors.white,
+          borderRadius:BorderRadius.circular(10),
+          boxShadow:const [
+            BoxShadow(
+              color: Color.fromRGBO(0, 0, 0, 0.05),
+              spreadRadius: 0, // How far the shadow spreads
+              blurRadius: 15, // How soft the shadow is
+              offset: Offset(0, 5), // Changes position of shadow (x,y)
+            )
+          ],
+        ),
+      child: Row(
+       children: [
+         Container(
+           width:45,
+           height:45,
+           decoration: BoxDecoration(
+             gradient: const LinearGradient(
+               colors: [
+                 Color(0xFF0A4D41), // Replace with the top color you picked
+                 Color(0xAE145347),
+               ],
+               begin: Alignment.topCenter,
+               end: Alignment.bottomCenter,
+             ),
+             borderRadius:BorderRadius.circular(30),
+           ),
+           child: Padding(
+             padding: const EdgeInsets.only(top:8),
+             child: Text(
+               "${suraDetails.number}",
+               style:GoogleFonts.amiri(
+                 fontSize:23,
+                 color: const Color(0xffE7DB9D),
+                 fontWeight:FontWeight.w500
+               ),
+               textAlign:TextAlign.center,
+             ),
+           ),
+         ),
+         const SizedBox(width:10),
+         Text(
+           suraDetails.name,
+           style:GoogleFonts.amiri(
+               fontSize:27,
+             fontWeight:FontWeight.w600
+           ),
+           textAlign:TextAlign.center,
+         ),
+         const Spacer(),
+         Container(
+           decoration:BoxDecoration(
+             color:const Color(0xffF5F4F9),
+             borderRadius:BorderRadius.circular(20)
+           ),
+           child: IconButton(
+             icon: const Icon(Icons.cloud_download_outlined),
+             iconSize:25,
+             onPressed:(){},
+           ),
+         ),
+         const SizedBox(width:10),
+         Container(
+           decoration:BoxDecoration(
+               color:const Color(0xffF5F4F9),
+               borderRadius:BorderRadius.circular(20)
+           ),
+           child: IconButton(
+             icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow_rounded),
+             iconSize:35,
+             onPressed:() => onAudioPlay(suraDetails.number),
+           ),
+         ),
+         const SizedBox(width:10),
+         Container(
+           decoration:BoxDecoration(
+               color:const Color(0xffF5F4F9),
+               borderRadius:BorderRadius.circular(20)
+           ),
+           child: IconButton(
+             icon: const Icon(Icons.favorite_border),
+             iconSize:25,
+             onPressed:(){},
+           ),
+         ),
+       ],
+      )
+    );
+  }
+}
