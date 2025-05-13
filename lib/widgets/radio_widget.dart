@@ -218,10 +218,15 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                   }
                 } else {
                   // For landscape orientation
-                  if (screenWidth > 800) {
+                  if (screenWidth > 800 && screenWidth < 1280) {
                     // Large tablets in landscape
                     return screenHeight * 1.05;
-                  } else {
+                  }
+                  else if (screenWidth >= 1280 && screenWidth < 1500) {
+                    // Large tablets in landscape
+                    return screenHeight * 0.75;
+                  }
+                  else {
                     // Phones/small tablets in landscape
                     return screenHeight * 0.4; // Adjusted from 0.9 to be more reasonable
                   }
@@ -295,11 +300,6 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                                     fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 18,
                                     color: Colors.white
                                 ),
-                              ),
-                              Text(
-                                isRadio ? "" : widget.suraAudios[_currentIndex].name,
-                                style: GoogleFonts.cairo(
-                                    fontSize: 18, color: Colors.white),
                               ),
                               Text(
                                 !isRadio ? formatDuration(duration) : formatDuration(position),

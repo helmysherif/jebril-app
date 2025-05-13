@@ -32,7 +32,8 @@ class _HomeScreenState extends State<HomeScreen> {
     radioAudio = [
       Surah(
         audio: "https://a6.asurahosting.com:8470/radio.mp3",
-        name: "",
+        arabicName: "",
+        englishName: "",
         number: 0,
       )
     ];

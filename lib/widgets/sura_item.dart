@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jebril_app/Sura.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/langs_provider.dart';
 class SuraItem extends StatelessWidget {
   final Surah suraDetails;
   final Function(int) onAudioPlay;
@@ -8,6 +11,7 @@ class SuraItem extends StatelessWidget {
   const SuraItem({super.key , required this.isPlaying , required this.suraDetails , required this.onAudioPlay});
   @override
   Widget build(BuildContext context) {
+    var pro = Provider.of<LangsProvider>(context);
     return Container(
       padding:const EdgeInsets.symmetric(horizontal:10 , vertical:15),
       margin:const EdgeInsets.symmetric(vertical:10 , horizontal:20),
@@ -54,47 +58,56 @@ class SuraItem extends StatelessWidget {
          ),
          const SizedBox(width:10),
          Text(
-           suraDetails.name,
+           pro.language == 'en' ? suraDetails.englishName : suraDetails.arabicName,
            style:GoogleFonts.amiri(
-               fontSize:27,
+               fontSize:pro.language == 'en' ?23:27,
              fontWeight:FontWeight.w600
            ),
            textAlign:TextAlign.center,
          ),
          const Spacer(),
          Container(
+           width:35,
+           height:35,
            decoration:BoxDecoration(
-             color:const Color(0xffF5F4F9),
-             borderRadius:BorderRadius.circular(20)
+             color: const Color(0xffF5F4F9),
+             borderRadius:BorderRadius.circular(25)
            ),
            child: IconButton(
              icon: const Icon(Icons.cloud_download_outlined),
-             iconSize:25,
+             iconSize:21,
              onPressed:(){},
+             padding:EdgeInsets.zero,
            ),
          ),
          const SizedBox(width:10),
          Container(
+           width:35,
+           height:35,
            decoration:BoxDecoration(
                color:const Color(0xffF5F4F9),
-               borderRadius:BorderRadius.circular(20)
+               borderRadius:BorderRadius.circular(25)
            ),
            child: IconButton(
              icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow_rounded),
-             iconSize:35,
+             iconSize:27,
              onPressed:() => onAudioPlay(suraDetails.number),
+             padding:EdgeInsets.zero,
            ),
          ),
          const SizedBox(width:10),
          Container(
+           width:35,
+           height:35,
            decoration:BoxDecoration(
                color:const Color(0xffF5F4F9),
-               borderRadius:BorderRadius.circular(20)
+               borderRadius:BorderRadius.circular(25)
            ),
            child: IconButton(
              icon: const Icon(Icons.favorite_border),
-             iconSize:25,
+             iconSize:21,
              onPressed:(){},
+             padding:EdgeInsets.zero,
            ),
          ),
        ],

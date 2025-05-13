@@ -11,8 +11,9 @@ class SuraAudio extends StatefulWidget {
   final int suraNumber;
   final bool isPlaying;
   final Function(bool) onPause;
+  final Function(int) onTrackChanged;
   const SuraAudio(
-      {super.key, required this.onPause ,required this.suraNumber, required this.isPlaying , required this.suraAudios});
+      {super.key, required this.onTrackChanged ,required this.onPause ,required this.suraNumber, required this.isPlaying , required this.suraAudios});
   @override
   State<SuraAudio> createState() => _SuraAudioState();
 }
@@ -54,16 +55,24 @@ class _SuraAudioState extends State<SuraAudio> {
   void initState() {
     super.initState();
     _currentIndex = widget.suraNumber;
-    _initPlayer(widget.suraNumber);
+    _initPlayer(_currentIndex);
+  }
+  @override
+  void dispose() {
+    player.stop();
+    player.dispose();
+    super.dispose();
   }
   @override
   void didUpdateWidget(covariant SuraAudio oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Check if the sura number changed
+
     if (widget.suraNumber != oldWidget.suraNumber) {
-      _loadTrack(widget.suraNumber);
+      _currentIndex = widget.suraNumber;
+      _loadTrack(_currentIndex,shouldPlay: true);
     }
-    if(widget.isPlaying){
+
+    if (widget.isPlaying) {
       player.play();
     } else {
       player.pause();
@@ -84,39 +93,10 @@ class _SuraAudioState extends State<SuraAudio> {
         player.pause();
       }
     });
-    await _loadTrack(index);
-  }
-  void skipForward() async {
-    try {
-      final newPosition = position + const Duration(seconds: 10);
-      if (newPosition > duration) {
-        await player.seek(duration);
-        setState(() => position = duration);
-      } else {
-        await player.seek(newPosition);
-        setState(() => position = newPosition);
-      }
-    } catch (e) {
-      debugPrint('Error skipping forward: $e');
-    }
+    await _loadTrack(index , shouldPlay:true);
   }
 
-  void skipBackward() async {
-    try {
-      final newPosition = position - const Duration(seconds: 10);
-      if (newPosition < Duration.zero) {
-        await player.seek(Duration.zero);
-        setState(() => position = Duration.zero);
-      } else {
-        await player.seek(newPosition);
-        setState(() => position = newPosition);
-      }
-    } catch (e) {
-      debugPrint('Error skipping backward: $e');
-    }
-  }
-
-  Future<void> _loadTrack(int index) async {
+  Future<void> _loadTrack(int index , {bool shouldPlay = true}) async {
     try {
       // await player.stop();
       // await player.setUrl(widget.suraAudios[index]);
@@ -144,7 +124,11 @@ class _SuraAudioState extends State<SuraAudio> {
           player.seek(position);
         }
       });
-      await player.play();
+      if (shouldPlay) {
+        await player.play();
+      } else {
+        await player.pause();
+      }
       setState(() => _currentIndex = index);
     } catch (e) {
       debugPrint('Error loading track: $e');
@@ -153,24 +137,26 @@ class _SuraAudioState extends State<SuraAudio> {
 
   Future<void> nextTrack() async {
     if (_currentIndex < widget.suraAudios.length - 1) {
-      await _loadTrack(_currentIndex + 1);
-    } else {
-      // Return to beginning if at end
-      await player.seek(Duration.zero);
+      _currentIndex++;
+      widget.onTrackChanged(_currentIndex); // Notify parent
+
+      await _loadTrack(_currentIndex,shouldPlay: true);
+      await player.play();
     }
-    await player.play();
-    setState(() {});
   }
 
   Future<void> prevTrack() async {
     final currentPos = player.position;
-    // If within first 3 seconds or first track
+
     if (currentPos.inSeconds > 3 || _currentIndex == 0) {
       await player.seek(Duration.zero);
     } else {
-      await _loadTrack(_currentIndex - 1);
+      _currentIndex--;
+      widget.onTrackChanged(_currentIndex); // Notify parent
+
+      await _loadTrack(_currentIndex,shouldPlay: true);
+      await player.play();
     }
-    await player.play();
   }
   @override
   Widget build(BuildContext context) {
@@ -244,7 +230,7 @@ class _SuraAudioState extends State<SuraAudio> {
                     crossAxisAlignment:CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "القرآن المرتل - سورة ${widget.suraAudios[widget.suraNumber].name}",
+                        "القرآن المرتل - سورة ${widget.suraAudios[widget.suraNumber].arabicName}",
                         style:GoogleFonts.cairo(
                             color: Colors.white,
                             fontSize:17
@@ -264,17 +250,14 @@ class _SuraAudioState extends State<SuraAudio> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Opacity(
-                        opacity: 0.5,
-                        child: IconButton(
-                          icon: const Icon(Icons.skip_next,
-                              color: Colors.white),
-                          onPressed: _hasPrevious
-                              ? prevTrack
-                              : null,
-                          iconSize: 35,
-                          padding:EdgeInsets.zero,
-                        ),
+                      IconButton(
+                        icon: const Icon(Icons.skip_next,
+                            color: Colors.white),
+                        onPressed: _hasPrevious
+                            ? prevTrack
+                            : null,
+                        iconSize: 35,
+                        padding:EdgeInsets.zero,
                       ),
                       Container(
                         decoration: BoxDecoration(
@@ -294,17 +277,14 @@ class _SuraAudioState extends State<SuraAudio> {
                           padding:EdgeInsets.zero,
                         ),
                       ),
-                      Opacity(
-                        opacity:0.5,
-                        child: IconButton(
-                          icon: const Icon(Icons.skip_previous,
-                              color: Colors.white),
-                          onPressed: _hasNext
-                              ? nextTrack
-                              : null,
-                          iconSize: 35,
-                          padding:EdgeInsets.zero,
-                        ),
+                      IconButton(
+                        icon: const Icon(Icons.skip_previous,
+                            color: Colors.white),
+                        onPressed: _hasNext
+                            ? nextTrack
+                            : null,
+                        iconSize: 35,
+                        padding:EdgeInsets.zero,
                       )
                     ],
                   )
