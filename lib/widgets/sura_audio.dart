@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jebril_app/Sura.dart';
+import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -12,8 +13,11 @@ class SuraAudio extends StatefulWidget {
   final bool isPlaying;
   final Function(bool) onPause;
   final Function(int) onTrackChanged;
+  final bool isRadioPlaying;
+  final String rewayaName;
+  final Surah? radioUrl;
   const SuraAudio(
-      {super.key, required this.onTrackChanged ,required this.onPause ,required this.suraNumber, required this.isPlaying , required this.suraAudios});
+      {super.key, this.radioUrl ,required this.isRadioPlaying ,required this.rewayaName ,required this.onTrackChanged ,required this.onPause ,required this.suraNumber, required this.isPlaying , required this.suraAudios});
   @override
   State<SuraAudio> createState() => _SuraAudioState();
 }
@@ -42,20 +46,49 @@ class _SuraAudioState extends State<SuraAudio> {
   handlePlayPause() {
     if (player.playing) {
       player.pause();
-       widget.onPause(false);
+      widget.onPause(false);
     } else {
       player.play();
-       widget.onPause(true);
+      widget.onPause(true);
     }
   }
   void handleSeek(double value) {
-    player.seek(Duration(seconds: value.toInt()));
+    if (!widget.isRadioPlaying || duration.inSeconds > 0) {
+      player.seek(Duration(seconds: value.toInt()));
+    }
   }
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.suraNumber;
-    _initPlayer(_currentIndex);
+    // Set up listeners first
+    player.positionStream.listen((p) => setState(() => position = p));
+    player.durationStream.listen((d) {
+      final newDuration = d ?? Duration.zero;
+      if (mounted) {
+        setState(() {
+          duration = newDuration;
+        });
+      }
+    });
+    player.playerStateStream.listen((state) {
+      setState(() {
+        _isPlaying = state.playing;
+        _isBuffering = state.processingState == ProcessingState.buffering;
+      });
+      if (state.processingState == ProcessingState.completed && !widget.isRadioPlaying) {
+        player.seek(Duration.zero);
+        player.pause();
+      }
+    });
+    // Load appropriate content based on initial state
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.isRadioPlaying) {
+        _loadRadio();
+      } else {
+        _loadTrack(_currentIndex, shouldPlay: widget.isPlaying);
+      }
+    });
   }
   @override
   void dispose() {
@@ -67,68 +100,107 @@ class _SuraAudioState extends State<SuraAudio> {
   void didUpdateWidget(covariant SuraAudio oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.suraNumber != oldWidget.suraNumber) {
+    // Handle switching between radio and surah modes
+    if (widget.isRadioPlaying != oldWidget.isRadioPlaying) {
+      if (widget.isRadioPlaying) {
+        _loadRadio();
+      } else {
+        _loadTrack(widget.suraNumber, shouldPlay: widget.isPlaying);
+      }
+    }
+    // Handle radio URL changes
+    else if (widget.isRadioPlaying &&
+        widget.radioUrl?.audio != oldWidget.radioUrl?.audio) {
+      _loadRadio();
+    }
+    // Handle surah changes
+    else if (!widget.isRadioPlaying &&
+        widget.suraNumber != oldWidget.suraNumber) {
       _currentIndex = widget.suraNumber;
-      _loadTrack(_currentIndex,shouldPlay: true);
+      _loadTrack(_currentIndex, shouldPlay: widget.isPlaying);
     }
 
-    if (widget.isPlaying) {
-      player.play();
-    } else {
-      player.pause();
+    // Sync play/pause state
+    if (widget.isPlaying != oldWidget.isPlaying) {
+      if (widget.isPlaying) {
+        player.play();
+      } else {
+        player.pause();
+      }
     }
   }
   Future<void> _initPlayer(int index) async {
     player.positionStream.listen((p) => setState(() => position = p));
     player.durationStream.listen((d) {
-      setState(() => duration = d ?? Duration.zero);
+      if (!widget.isRadioPlaying) {
+        setState(() => duration = d ?? Duration.zero);
+      }
     });
     player.playerStateStream.listen((state) {
       setState(() {
         _isPlaying = state.playing;
         _isBuffering = state.processingState == ProcessingState.buffering;
       });
-      if (state.processingState == ProcessingState.completed) {
+      if (state.processingState == ProcessingState.completed && !widget.isRadioPlaying) {
         player.seek(Duration.zero);
         player.pause();
       }
     });
-    await _loadTrack(index , shouldPlay:true);
+    if (widget.isRadioPlaying) {
+      await _loadRadio();
+    } else {
+      await _loadTrack(index, shouldPlay: true);
+    }
   }
-
-  Future<void> _loadTrack(int index , {bool shouldPlay = true}) async {
+  Future<void> _loadRadio() async {
     try {
-      // await player.stop();
-      // await player.setUrl(widget.suraAudios[index]);
-      await player.setSpeed(1.0);
+      // Stop any existing playback
+      await player.stop();
+
+      if (widget.radioUrl?.audio == null) {
+        debugPrint('Radio URL is null');
+        return;
+      }
+
+      // Set up new audio source
       await player.setAudioSource(
         AudioSource.uri(
-            Uri.parse(widget.suraAudios[index].audio),
+            Uri.parse(widget.radioUrl!.audio),
             tag: "راديو الشيخ جبريل - قرآن"
         ),
-        initialPosition: Duration.zero,
         preload: true,
       );
-      player.positionStream.listen((p) {
-        setState(() => position = p);
-      });
-      player.durationStream.listen((d) {
-        setState(() => duration = d!);
-      });
-      player.playerStateStream.listen((state) {
-        if (state.processingState == ProcessingState.completed) {
-          setState(() {
-            position = Duration.zero;
-          });
-          player.pause();
-          player.seek(position);
-        }
-      });
-      if (shouldPlay) {
+      await player.play();
+      // Start playback if requested
+      if (widget.isPlaying) {
         await player.play();
-      } else {
-        await player.pause();
       }
+
+      debugPrint('Radio loaded successfully: ${widget.radioUrl!.audio}');
+    } catch (e) {
+      debugPrint('Error loading radio: $e');
+      // Consider showing an error to the user
+    }
+  }
+  Future<void> _loadTrack(int index, {bool shouldPlay = true}) async {
+    try {
+      if (index < 1 || index > widget.suraAudios.length) {
+        debugPrint('Invalid index: $index');
+        return;
+      }
+      await player.setSpeed(1.0);
+      final audioUrl = widget.suraAudios[index - 1].audio;
+
+      if (audioUrl.isEmpty) {
+        debugPrint('Invalid audio URL');
+        return;
+      }
+      await player.setAudioSource(
+        AudioSource.uri(Uri.parse(audioUrl)),
+        preload: true,
+      );
+
+      if (shouldPlay) await player.play();
       setState(() => _currentIndex = index);
     } catch (e) {
       debugPrint('Error loading track: $e');
@@ -179,14 +251,14 @@ class _SuraAudioState extends State<SuraAudio> {
               mainAxisAlignment:MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  formatDuration(position),
+                  widget.isRadioPlaying ? "مباشر" : formatDuration(position),
                   style: GoogleFonts.cairo(
                       fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 18,
                       color: Colors.white
                   ),
                 ),
                 Text(
-                  formatDuration(duration),
+                  widget.isRadioPlaying ? formatDuration(position) : formatDuration(duration),
                   style: GoogleFonts.cairo(
                       fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 18,
                       color: Colors.white),
@@ -217,8 +289,10 @@ class _SuraAudioState extends State<SuraAudio> {
                 padding: const EdgeInsets.only(
                     left: 0, right: 0, top: 5, bottom: 0),
                 min: 0.0,
-                max: duration.inSeconds.toDouble(),
-                value: position.inSeconds.toDouble(),
+                max: duration.inSeconds > 0 ? duration.inSeconds.toDouble() : 1.0,
+                value: position.inSeconds.toDouble().clamp(0.0, duration.inSeconds > 0
+                    ? duration.inSeconds.toDouble()
+                    : 1.0),
                 onChanged:handleSeek,
               ),
             ),
@@ -229,16 +303,16 @@ class _SuraAudioState extends State<SuraAudio> {
                   Column(
                     crossAxisAlignment:CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "القرآن المرتل - سورة ${widget.suraAudios[widget.suraNumber].arabicName}",
+                      !widget.isRadioPlaying ? Text(
+                        "القرآن المرتل - سورة ${ widget.isRadioPlaying ? '' : widget.suraAudios[widget.suraNumber - 1].arabicName}",
                         style:GoogleFonts.cairo(
                             color: Colors.white,
                             fontSize:17
                         ),
-                      ),
+                      ) : const SizedBox.shrink(),
                       const SizedBox(height:5),
                       Text(
-                        "برواية حفص بن عاصم",
+                        widget.isRadioPlaying ? "راديو الشيخ جبريل - قرآن" : "برواية ${widget.rewayaName}",
                         style:GoogleFonts.cairo(
                             color: Colors.white,
                             fontSize:17
@@ -250,7 +324,16 @@ class _SuraAudioState extends State<SuraAudio> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      IconButton(
+                      widget.isRadioPlaying ? const Opacity(
+                        opacity:0.5,
+                        child: IconButton(
+                          icon: Icon(Icons.skip_next,
+                              color: Colors.white),
+                          onPressed:null,
+                          iconSize: 35,
+                          padding:EdgeInsets.zero,
+                        ),
+                      ) : IconButton(
                         icon: const Icon(Icons.skip_next,
                             color: Colors.white),
                         onPressed: _hasPrevious
@@ -277,7 +360,16 @@ class _SuraAudioState extends State<SuraAudio> {
                           padding:EdgeInsets.zero,
                         ),
                       ),
-                      IconButton(
+                      widget.isRadioPlaying ? const Opacity(
+                        opacity:0.5,
+                        child: IconButton(
+                          icon: Icon(Icons.skip_previous,
+                              color: Colors.white),
+                          onPressed: null,
+                          iconSize: 35,
+                          padding:EdgeInsets.zero,
+                        ),
+                      ) : IconButton(
                         icon: const Icon(Icons.skip_previous,
                             color: Colors.white),
                         onPressed: _hasNext
@@ -296,8 +388,3 @@ class _SuraAudioState extends State<SuraAudio> {
     );
   }
 }
-// Text(
-// suraAudios[suraNumber].name,
-// style:TextStyle(
-// color: Colors.white
-// ),

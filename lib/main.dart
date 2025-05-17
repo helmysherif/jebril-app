@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:jebril_app/providers/langs_provider.dart';
 import 'package:jebril_app/providers/sura_details_provider.dart';
 import 'package:jebril_app/screens/home.dart';
@@ -13,6 +14,8 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (context) => LangsProvider()),
         ChangeNotifierProvider(create: (context) => SuraDetailsProvider()),
+        ChangeNotifierProvider(create: (context) => AudioProvider()),
+        Provider<RouteObserver<ModalRoute>>(create: (context) => RouteObserver<ModalRoute>())
         // Add more providers here as needed
       ],
       child: const MyApp(),
@@ -27,6 +30,9 @@ class MyApp extends StatelessWidget {
     var provider = Provider.of<LangsProvider>(context);
     return SafeArea(
       child: MaterialApp(
+        navigatorObservers: [
+          Provider.of<RouteObserver<ModalRoute>>(context),
+        ],
         debugShowCheckedModeBanner: false,
         localizationsDelegates: const [
           AppLocalizations.delegate,

@@ -34,9 +34,13 @@ class _TextInputFieldState extends State<TextInputField> {
           controller: widget.controller,
           keyboardType: TextInputType.text,
           textInputAction: TextInputAction.search,
-          textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+          textAlign: isArabic ? TextAlign.right : TextAlign.left,
+          keyboardAppearance: Brightness.light,
+          enableInteractiveSelection: true,
+          autocorrect: false,
+          enableSuggestions: false,
           decoration: InputDecoration(
-            hintText: "البحث عن سورة",
+            hintText: isArabic ? "البحث عن سورة" : "search by surah name",
             isDense: false,
             contentPadding: const EdgeInsets.symmetric(vertical: 13),
             hintStyle: GoogleFonts.cairo(
@@ -51,7 +55,11 @@ class _TextInputFieldState extends State<TextInputField> {
               size:27,
             ),
           ),
-          onChanged: (text) => widget.getInputValue(text)
+          onChanged: (text) => widget.getInputValue(text),
+          style: GoogleFonts.cairo(
+            fontSize: 17,
+            fontWeight: FontWeight.w500,
+          ),
       ),
     );
   }

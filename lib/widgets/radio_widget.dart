@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:jebril_app/Sura.dart';
+import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:jebril_app/widgets/custom_icon_button.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,7 +10,7 @@ import '../providers/langs_provider.dart';
 
 // import 'package:google_fonts/google_fonts.dart';
 class RadioWidget extends StatefulWidget {
-  final List<Surah> suraAudios;
+  final Surah suraAudios;
   final int initialIndex;
 
   // String radioUrl;
@@ -37,7 +38,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
   Duration duration = Duration.zero;
   bool get _hasPrevious => _currentIndex > 0;
 
-  bool get _hasNext => _currentIndex < widget.suraAudios.length - 1;
+  bool get _hasNext => _currentIndex < 0;
 
   String formatDuration(Duration d) {
     final hours = d.inHours;
@@ -128,7 +129,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
       await player.setSpeed(1.0);
       await player.setAudioSource(
         AudioSource.uri(
-          Uri.parse(widget.suraAudios[index].audio),
+          Uri.parse(widget.suraAudios.audio),
           tag: "راديو الشيخ جبريل - قرآن"
         ),
         initialPosition: Duration.zero,
@@ -157,7 +158,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
   }
 
   Future<void> nextTrack() async {
-    if (!isRadio && _currentIndex < widget.suraAudios.length - 1) {
+    if (!isRadio && _currentIndex < 0) {
       await _loadTrack(_currentIndex + 1);
     } else {
       // Return to beginning if at end
@@ -177,14 +178,44 @@ class _QuranRadioWidgetState extends State<RadioWidget>
     }
     await player.play();
   }
-
+  void _handleProviderChange() {
+    if (!mounted) return;
+    // Handle navigation preparation
+    if (audioProvider.isNavigating) {
+      player.pause();
+      return;
+    }
+    // Original provider change handling
+    if (!audioProvider.isRadioPlaying && _isPlaying) {
+      player.pause();
+      if (mounted) {
+        setState(() => _isPlaying = false);
+      }
+    }
+  }
+  late AudioProvider audioProvider;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    audioProvider = Provider.of<AudioProvider>(context, listen: false);
+    audioProvider.addListener(_handleProviderChange);
+  }
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    player.dispose();
+    audioProvider.removeListener(_handleProviderChange);
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
-    var pro = Provider.of<LangsProvider>(context);
+    LangsProvider pro = Provider.of<LangsProvider>(context);
+    // AudioProvider audioProvider = Provider.of<AudioProvider>(context);
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     double topVal = MediaQuery.of(context).size.width > 600 ? 10 : 0;
     bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    audioProvider.addListener(_handleProviderChange);
     return Stack(
       children: [
         SizedBox(
@@ -366,7 +397,15 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                                   icon: Icon(
                                       player.playing ? Icons.pause : Icons.play_arrow,
                                       color: Colors.white),
-                                  onPressed: handlePlayPause,
+                                  onPressed: (){
+                                    if (player.playing) {
+                                      audioProvider.changeIsRadioPlaying(false);
+                                      player.pause();
+                                    } else {
+                                      audioProvider.changeIsRadioPlaying(true);
+                                      player.play();
+                                    }
+                                  },
                                   iconSize: 35,
                                   padding:EdgeInsets.zero,
                                 ),

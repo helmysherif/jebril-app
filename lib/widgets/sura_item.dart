@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jebril_app/Sura.dart';
+import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/langs_provider.dart';
@@ -12,6 +13,7 @@ class SuraItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var pro = Provider.of<LangsProvider>(context);
+    AudioProvider audioProvider = Provider.of<AudioProvider>(context);
     return Container(
       padding:const EdgeInsets.symmetric(horizontal:10 , vertical:15),
       margin:const EdgeInsets.symmetric(vertical:10 , horizontal:20),
@@ -91,7 +93,10 @@ class SuraItem extends StatelessWidget {
            child: IconButton(
              icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow_rounded),
              iconSize:27,
-             onPressed:() => onAudioPlay(suraDetails.number),
+             onPressed:(){
+               audioProvider.changeIsRadioPlaying(false);
+               onAudioPlay(suraDetails.number);
+             },
              padding:EdgeInsets.zero,
            ),
          ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:jebril_app/Sura.dart';
+import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:jebril_app/providers/langs_provider.dart';
 import 'package:jebril_app/screens/quran_screen.dart';
 import 'package:jebril_app/widgets/card_item.dart';
@@ -23,24 +24,37 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final String selectedLanguage = 'عربي';
 
-  List<Surah> radioAudio = [];
+  late Surah radioAudio;
   final List<String> languages = ['English', 'عربي'];
 
   @override
   void initState() {
     super.initState();
-    radioAudio = [
-      Surah(
-        audio: "https://a6.asurahosting.com:8470/radio.mp3",
-        arabicName: "",
-        englishName: "",
-        number: 0,
-      )
-    ];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final audioProvider = Provider.of<AudioProvider>(context, listen: false);
+
+      // Only auto-play if not already playing
+      if (!audioProvider.isRadioPlaying) {
+        // audioProvider.changeIsRadioPlaying(true);
+        audioProvider.setRadioAudio(Surah(
+          audio: "https://a6.asurahosting.com:8470/radio.mp3",
+          arabicName: "",
+          englishName: "",
+          number: 0,
+        ));
+      }
+    });
   }
   @override
   Widget build(BuildContext context) {
-    var pro = Provider.of<LangsProvider>(context);
+    LangsProvider langsProvider = Provider.of<LangsProvider>(context);
+    radioAudio = Surah(
+      audio: "https://a6.asurahosting.com:8470/radio.mp3",
+      arabicName: "",
+      englishName: "",
+      number: 0,
+    );
     final localizations = AppLocalizations.of(context)!;
     var taps = [
       {
@@ -91,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     DropdownButton<String>(
-                      value: pro.language == 'en' ? 'English' : 'عربي',
+                      value: langsProvider.language == 'en' ? 'English' : 'عربي',
                       elevation: 0,
                       underline: const SizedBox.shrink(),
                       icon: const SizedBox.shrink(),
@@ -106,9 +120,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       onChanged: (String? lang) {
                         if (lang != null) {
                           if (lang == 'English') {
-                            pro.changeLanguage("en");
+                            langsProvider.changeLanguage("en");
                           } else {
-                            pro.changeLanguage("ar");
+                            langsProvider.changeLanguage("ar");
                           }
                         }
                       },
@@ -172,9 +186,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 image: tap["image"]!,
                                 onPressed: (int id) {
                                   if(index == 0){
-                                    Navigator.of(context).pushNamed(
-                                      QuranScreen.routeName
-                                    );
+                                    final audioProvider = Provider.of<AudioProvider>(context, listen: false);
+                                    audioProvider.prepareForNavigation();
+                                    Navigator.of(context).pushReplacementNamed(QuranScreen.routeName);
                                   }
                                 },
                                 id: index
