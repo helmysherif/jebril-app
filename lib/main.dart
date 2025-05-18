@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:jebril_app/providers/langs_provider.dart';
+import 'package:jebril_app/providers/quran_data_provider.dart';
 import 'package:jebril_app/providers/sura_details_provider.dart';
 import 'package:jebril_app/screens/home.dart';
+import 'package:jebril_app/screens/quran_narratives.dart';
 import 'package:jebril_app/screens/quran_screen.dart';
 import 'package:jebril_app/screens/splash_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -15,6 +17,7 @@ void main() {
         ChangeNotifierProvider(create: (context) => LangsProvider()),
         ChangeNotifierProvider(create: (context) => SuraDetailsProvider()),
         ChangeNotifierProvider(create: (context) => AudioProvider()),
+        ChangeNotifierProvider(create: (context) => QuranDataProvider()),
         Provider<RouteObserver<ModalRoute>>(create: (context) => RouteObserver<ModalRoute>())
         // Add more providers here as needed
       ],
@@ -48,7 +51,8 @@ class MyApp extends StatelessWidget {
         routes: {
           SplashScreen.routeName: (context) => const SplashScreen(),
           HomeScreen.routeName : (context) => HomeScreen(),
-          QuranScreen.routeName : (context) => QuranScreen()
+          QuranScreen.routeName : (context) => const QuranScreen(),
+          QuranNarratives.routeName : (context) => const QuranNarratives()
         },
         initialRoute:SplashScreen.routeName,
       ),

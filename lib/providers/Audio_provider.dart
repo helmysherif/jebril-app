@@ -4,6 +4,7 @@ class AudioProvider extends ChangeNotifier {
   bool isRadioPlaying = false;
   bool _isPlaying = false;
   bool isNavigating = false;
+  bool keepRadioPlaying = false;
   Surah? radioAudio = Surah(
     audio: "",
     arabicName: "",
@@ -18,15 +19,22 @@ class AudioProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+  void setKeepRadioPlaying(bool keepPlaying) {
+    keepRadioPlaying = keepPlaying;
+    notifyListeners();
+  }
   void setIsPlaying(bool value) {
     _isPlaying = value;
     notifyListeners();
   }
-  void navigationComplete() {
-    isNavigating = false;
-  }
   void prepareForNavigation() {
     isNavigating = true;
+    notifyListeners();
+  }
+
+  void completeNavigation() {
+    isNavigating = false;
+    notifyListeners();
   }
   void setRadioAudio(Surah audio) {
     radioAudio = audio;

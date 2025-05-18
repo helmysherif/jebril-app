@@ -150,7 +150,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
           player.seek(position);
         }
       });
-      if (player.playing) await player.play();
+      if (player.playing || (audioProvider.keepRadioPlaying)) await player.play();
       setState(() => _currentIndex = index);
     } catch (e) {
       debugPrint('Error loading track: $e');
@@ -210,7 +210,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
   @override
   Widget build(BuildContext context) {
     LangsProvider pro = Provider.of<LangsProvider>(context);
-    // AudioProvider audioProvider = Provider.of<AudioProvider>(context);
+    AudioProvider audioProvider = Provider.of<AudioProvider>(context);
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     double topVal = MediaQuery.of(context).size.width > 600 ? 10 : 0;

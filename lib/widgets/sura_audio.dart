@@ -156,7 +156,6 @@ class _SuraAudioState extends State<SuraAudio> {
     try {
       // Stop any existing playback
       await player.stop();
-
       if (widget.radioUrl?.audio == null) {
         debugPrint('Radio URL is null');
         return;
@@ -172,6 +171,10 @@ class _SuraAudioState extends State<SuraAudio> {
       );
       await player.play();
       // Start playback if requested
+      AudioProvider audioProvider;
+      if(mounted){
+
+      }
       if (widget.isPlaying) {
         await player.play();
       }

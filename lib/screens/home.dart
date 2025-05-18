@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:jebril_app/Sura.dart';
 import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:jebril_app/providers/langs_provider.dart';
+import 'package:jebril_app/screens/quran_narratives.dart';
 import 'package:jebril_app/screens/quran_screen.dart';
 import 'package:jebril_app/widgets/card_item.dart';
 import 'package:jebril_app/widgets/radio_widget.dart';
@@ -11,6 +12,10 @@ import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+
+import '../models/AudioResponse.dart';
+import '../network/audios.dart';
+import '../providers/quran_data_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({super.key});
@@ -26,17 +31,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late Surah radioAudio;
   final List<String> languages = ['English', 'عربي'];
-
+  bool isLoading = false;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final audioProvider = Provider.of<AudioProvider>(context, listen: false);
-
-      // Only auto-play if not already playing
-      if (!audioProvider.isRadioPlaying) {
-        // audioProvider.changeIsRadioPlaying(true);
+      // If we should keep the radio playing (coming back from Quran screen)
+      if (audioProvider.keepRadioPlaying && audioProvider.radioAudio != null) {
+        audioProvider.changeIsRadioPlaying(true);
+        audioProvider.setKeepRadioPlaying(false); // Reset the flag
+      } else if (!audioProvider.isRadioPlaying) {
+        // Set default radio if nothing is playing
         audioProvider.setRadioAudio(Surah(
           audio: "https://a6.asurahosting.com:8470/radio.mp3",
           arabicName: "",
@@ -44,11 +51,26 @@ class _HomeScreenState extends State<HomeScreen> {
           number: 0,
         ));
       }
+      getAllAudiosData();
     });
+  }
+  Future<void> getAllAudiosData()async{
+    setState(() => isLoading = true);
+    try {
+      QuranDataProvider quranDataProvider = Provider.of<QuranDataProvider>(context,listen:false);
+      List<AudioResponse> response = await GetAudiosApi.getAudios();
+      quranDataProvider.setData(response);
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+    }
   }
   @override
   Widget build(BuildContext context) {
     LangsProvider langsProvider = Provider.of<LangsProvider>(context);
+    final audioProvider = Provider.of<AudioProvider>(context, listen: false);
     radioAudio = Surah(
       audio: "https://a6.asurahosting.com:8470/radio.mp3",
       arabicName: "",
@@ -84,8 +106,10 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     return Scaffold(
         backgroundColor: const Color(0xfff5f5f5),
-        body: SingleChildScrollView(
-          child: Column(
+        body: isLoading ? const Center(
+        child: CircularProgressIndicator(),
+    ) : SingleChildScrollView(
+          child:Column(
             children: [
               Container(
                 color: Colors.white,
@@ -189,6 +213,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     final audioProvider = Provider.of<AudioProvider>(context, listen: false);
                                     audioProvider.prepareForNavigation();
                                     Navigator.of(context).pushReplacementNamed(QuranScreen.routeName);
+                                  }
+                                  else if(index == 1){
+                                    Navigator.of(context).pushReplacementNamed(QuranNarratives.routeName);
                                   }
                                 },
                                 id: index
