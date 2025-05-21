@@ -8,7 +8,10 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../constants/sura_names.dart';
 import '../models/AudioResponse.dart';
 import '../models/Subcategories.dart';
+import '../providers/Audio_provider.dart';
 import '../providers/quran_data_provider.dart';
+import '../providers/sura_details_provider.dart';
+import '../widgets/sura_audio.dart';
 import '../widgets/sura_item.dart';
 import '../widgets/text_input_field.dart';
 import 'home.dart';
@@ -22,6 +25,10 @@ class _QuranNarrativesState extends State<QuranNarratives> {
   List<Subcategories> quranNarratives = [];
   List<Subcategories> selectedQuranNarratives = [];
   List<Surah> surahAudios = [];
+  bool showRadio = false;
+  int currentSuraNumber = 0;
+  int? currentlyPlayingIndex;
+  bool isPlaying = false;
   final TextEditingController _searchController = TextEditingController();
   @override
   void initState(){
@@ -46,7 +53,6 @@ class _QuranNarrativesState extends State<QuranNarratives> {
       isLoading = true;
     });
       QuranDataProvider quranDataProvider = Provider.of<QuranDataProvider>(context , listen:false);
-      List<AudioResponse> response = quranDataProvider.allAudioResponses;
       quranNarratives = quranDataProvider.getFilteredQuranData("quran_narratives", 0);
       selectedQuranNarratives = [quranNarratives[index]];
       List<String> narratives = await GetAudiosApi.getNarrativeAudiosCount(quranNarratives[index].id);
@@ -78,10 +84,36 @@ class _QuranNarrativesState extends State<QuranNarratives> {
     }
     return surahs;
   }
-  getSearchInputValue(String text) {}
+  List<Surah> getFilteredSurahs(String searchText) {
+    if (searchText.isEmpty) {
+      return surahAudios; // Return all surahs if search is empty
+    } else {
+      return surahAudios.where((surah) {
+        final englishMatch =
+        surah.englishName.toLowerCase().contains(searchText.toLowerCase());
+        final arabicMatch =
+        surah.arabicName.contains(searchText); // Arabic is case-sensitive
+        return englishMatch || arabicMatch;
+      }).toList();
+    }
+  }
+  String filteredName = "";
+  getSearchInputValue(String text) {
+    filteredName = text;
+    setState(() {});
+  }
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _searchController.dispose(); // If you have controllers
+  }
+  int clickedSuraNumber = 0;
   @override
   Widget build(BuildContext context) {
     LangsProvider langProvider = Provider.of<LangsProvider>(context);
+    AudioProvider audioProvider = Provider.of<AudioProvider>(context);
+    SuraDetailsProvider suraDetailsProvider = Provider.of<SuraDetailsProvider>(context);
     return Scaffold(
       extendBody: true,
       backgroundColor: const Color(0xfff5f5f5),
@@ -125,7 +157,7 @@ class _QuranNarrativesState extends State<QuranNarratives> {
                       child: TextInputField(
                           getInputValue: getSearchInputValue,
                           controller:
-                          _searchController), // Your custom text input widget
+                          _searchController),
                     ),
                     const SizedBox(width: 20),
                     Expanded(
@@ -169,6 +201,11 @@ class _QuranNarrativesState extends State<QuranNarratives> {
                             if(sura != null){
                               setState(() {
                                 isLoading = true;
+                                if (!audioProvider.isRadioPlaying) {
+                                  showRadio = false;
+                                  isPlaying = false;
+                                  currentlyPlayingIndex = null;
+                                }
                               });
                               surahAudios = [];
                               selectedQuranNarratives = [sura];
@@ -213,17 +250,30 @@ class _QuranNarrativesState extends State<QuranNarratives> {
             ],
           ),
           Expanded(
-            child: isLoading ? const Center(child: CircularProgressIndicator()) : surahAudios.isNotEmpty ? ListView.builder(
+            child: isLoading ? const Center(child: CircularProgressIndicator()) : getFilteredSurahs(filteredName).isNotEmpty ? ListView.builder(
               itemBuilder:(context, index){
                 return SuraItem(
-                  suraDetails: surahAudios[index],
+                  suraDetails: getFilteredSurahs(filteredName)[index],
                   onAudioPlay: (int suraNumber) {
-                    setState(() {});
+                    setState(() {
+                      if (suraDetailsProvider.suraNumber == suraNumber && suraDetailsProvider.isPlaying) {
+                        // If clicking the currently playing sura, stop it
+                        suraDetailsProvider.changeIsPlaying(false);
+                      } else {
+                        // Play the new sura
+                        suraDetailsProvider.changeIndex(index);
+                        suraDetailsProvider.changeSuraNumber(suraNumber);
+                        suraDetailsProvider.changeIsPlaying(true);
+                        showRadio = true;
+                      }
+                    });
                   },
-                  isPlaying:false,
+                  isPlaying:suraDetailsProvider.suraNumber == getFilteredSurahs(filteredName)[index].number &&
+                      suraDetailsProvider.isPlaying &&
+                      !audioProvider.isRadioPlaying,
                 );
               },
-              itemCount:surahAudios.length,
+              itemCount:getFilteredSurahs(filteredName).length,
             ) : Center(
               child: Text(
                 AppLocalizations.of(context)!.emptySurasData,
@@ -233,7 +283,39 @@ class _QuranNarrativesState extends State<QuranNarratives> {
                 ),
               ),
             ),
-          )
+          ),
+          // Text("${suraDetailsProvider.suraNumber}" , style:TextStyle(fontSize:30)),
+          if (showRadio || audioProvider.isRadioPlaying)
+            SizedBox(
+              height:180,
+              child: SuraAudio(
+                suraAudios: surahAudios,
+                suraNumber: suraDetailsProvider.index + 1,
+                suraIndex: suraDetailsProvider.suraNumber,
+                isPlaying: suraDetailsProvider.isPlaying,
+                rewayaName: langProvider.language == 'en' ? selectedQuranNarratives[0].enTitle : selectedQuranNarratives[0].arTitle,
+                isRadioPlaying:audioProvider.isRadioPlaying,
+                radioUrl: audioProvider.isRadioPlaying ? audioProvider.radioAudio : null,
+                onPause: (bool stat) {
+                  if(mounted){
+                    setState(() {
+                      isPlaying = stat;
+                      suraDetailsProvider.changeIsPlaying(stat);
+                      currentlyPlayingIndex = isPlaying ? suraDetailsProvider.index : null;
+                    });
+                  }
+                },
+                onTrackChanged: (int newIndex , int suraNumber) {
+                  if(mounted){
+                    setState(() {
+                      suraDetailsProvider.changeIndex(newIndex - 1);
+                      suraDetailsProvider.changeSuraNumber(suraNumber);
+                      suraDetailsProvider.changeIsPlaying(true);
+                    });
+                  }
+                },
+              ),
+            ),
         ],
       ),
     );

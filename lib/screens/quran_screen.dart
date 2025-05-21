@@ -90,7 +90,6 @@ class _QuranScreenState extends State<QuranScreen> {
     setState(() => isLoading = true);
     try {
       QuranDataProvider quranDataProvider = Provider.of<QuranDataProvider>(context , listen:false);
-      List<AudioResponse> response = quranDataProvider.allAudioResponses;
       holyQuranData = quranDataProvider.getFilteredQuranData("holy_quran", 0);
       selectedQuran = [holyQuranData.first];
       var test = await GetAudiosApi.getHollyQuranAudiosCount(selectedQuran[0].id);
@@ -134,6 +133,7 @@ class _QuranScreenState extends State<QuranScreen> {
             //   audioProvider2.setKeepRadioPlaying(true);
             // }
             audioProvider2.changeIsRadioPlaying(false);
+            // Navigator.of(context).pop();
             Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
           },
         ),
@@ -266,7 +266,7 @@ class _QuranScreenState extends State<QuranScreen> {
                             if (currentlyPlayingIndex == getFilteredSurahs(filteredName)[index].number) {
                               currentlyPlayingIndex = null;
                               isPlaying = false;
-                              showRadio = false;
+                              // showRadio = false;
                             } else {
                               if (audioProvider2.isRadioPlaying) {
                                 audioProvider2.changeIsRadioPlaying(false);
@@ -317,7 +317,7 @@ class _QuranScreenState extends State<QuranScreen> {
                     });
                   }
                 },
-                onTrackChanged: (int newIndex) {
+                onTrackChanged: (int newIndex , int suraNumber) {
                   if(mounted){
                     setState(() {
                       currentlyPlayingIndex = newIndex;

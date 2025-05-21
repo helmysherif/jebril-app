@@ -12,12 +12,13 @@ class SuraAudio extends StatefulWidget {
   final int suraNumber;
   final bool isPlaying;
   final Function(bool) onPause;
-  final Function(int) onTrackChanged;
+  final Function(int , int) onTrackChanged;
   final bool isRadioPlaying;
   final String rewayaName;
   final Surah? radioUrl;
+  final int? suraIndex;
   const SuraAudio(
-      {super.key, this.radioUrl ,required this.isRadioPlaying ,required this.rewayaName ,required this.onTrackChanged ,required this.onPause ,required this.suraNumber, required this.isPlaying , required this.suraAudios});
+      {super.key, this.radioUrl, this.suraIndex  ,required this.isRadioPlaying ,required this.rewayaName ,required this.onTrackChanged ,required this.onPause ,required this.suraNumber, required this.isPlaying , required this.suraAudios});
   @override
   State<SuraAudio> createState() => _SuraAudioState();
 }
@@ -29,7 +30,7 @@ class _SuraAudioState extends State<SuraAudio> {
   Duration position = Duration.zero;
   Duration duration = Duration.zero;
   bool get _hasPrevious => _currentIndex > 0;
-  bool get _hasNext => _currentIndex < widget.suraAudios.length - 1;
+  bool get _hasNext => _currentIndex < widget.suraAudios.length;
   String formatDuration(Duration d) {
     final hours = d.inHours;
     final minutes = d.inMinutes.remainder(60);
@@ -211,26 +212,27 @@ class _SuraAudioState extends State<SuraAudio> {
   }
 
   Future<void> nextTrack() async {
-    if (_currentIndex < widget.suraAudios.length - 1) {
+    if (_hasNext) {
       _currentIndex++;
-      widget.onTrackChanged(_currentIndex); // Notify parent
-
-      await _loadTrack(_currentIndex,shouldPlay: true);
+      final newSuraNumber = widget.suraAudios[_currentIndex - 1].number;
+      widget.onTrackChanged(_currentIndex, newSuraNumber);
+      await _loadTrack(_currentIndex, shouldPlay: true);
       await player.play();
     }
   }
 
   Future<void> prevTrack() async {
     final currentPos = player.position;
-
-    if (currentPos.inSeconds > 3 || _currentIndex == 0) {
+    if (currentPos.inSeconds > 0.5) {
       await player.seek(Duration.zero);
     } else {
-      _currentIndex--;
-      widget.onTrackChanged(_currentIndex); // Notify parent
-
-      await _loadTrack(_currentIndex,shouldPlay: true);
-      await player.play();
+      if (_currentIndex > 1) {
+        _currentIndex--;
+        final newSuraNumber = widget.suraAudios[_currentIndex - 1].number;
+        widget.onTrackChanged(_currentIndex, newSuraNumber);
+        await _loadTrack(_currentIndex, shouldPlay: true);
+        await player.play();
+      }
     }
   }
   @override

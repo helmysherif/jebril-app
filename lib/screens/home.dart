@@ -106,9 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     return Scaffold(
         backgroundColor: const Color(0xfff5f5f5),
-        body: isLoading ? const Center(
-        child: CircularProgressIndicator(),
-    ) : SingleChildScrollView(
+        body: SingleChildScrollView(
           child:Column(
             children: [
               Container(
@@ -172,7 +170,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              Padding(
+              isLoading ? SizedBox(
+                height: MediaQuery.of(context).size.height * 0.85,
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ) : Padding(
                 padding: const EdgeInsets.only(top: 5),
                 child: Column(
                   children: [
