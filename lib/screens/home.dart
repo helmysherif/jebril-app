@@ -80,27 +80,27 @@ class _HomeScreenState extends State<HomeScreen> {
     final localizations = AppLocalizations.of(context)!;
     var taps = [
       {
-        "image": "assets/images/quran.png",
+        "image": "assets/images/المصحف المرتل.svg",
         "title": localizations.quran
       },
       {
-        "image": "assets/images/rewayat.png",
+        "image": "assets/images/الروايات المتواترة.svg",
         "title": localizations.rewayat
       },
       {
-        "image": "assets/images/prey.png",
+        "image": "assets/images/التراويح والقيام.svg",
         "title": localizations.tarawih
       },
       {
-        "image": "assets/images/doaa.png",
+        "image": "assets/images/الدعاء والذكر.svg",
         "title": localizations.prayers
       },
       {
-        "image": "assets/images/wishlist.png",
+        "image": "assets/images/المفضل.svg",
         "title": localizations.wishlist
       },
       {
-        "image": "assets/images/ellipise.png",
+        "image": "assets/images/المزيد.svg",
         "title": localizations.more
       }
     ];
@@ -122,7 +122,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 10),
                         Text(localizations.name,
                             style: GoogleFonts.cairo(
-                                fontSize: 18, fontWeight: FontWeight.w600)),
+                                fontSize: 18, fontWeight: FontWeight.w600),textScaler: const TextScaler.linear(1.0)),
+
                         const SizedBox(width: 10),
                       ],
                     ),
@@ -136,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
-                          child: Text(value),
+                          child: Text(value , textScaler: const TextScaler.linear(1.0)),
                         );
                       }).toList(),
                       onChanged: (String? lang) {
@@ -160,6 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     fontSize: 18,
                                     color: const Color(0xff484848),
                                     fontWeight: FontWeight.w600),
+                                  textScaler: const TextScaler.linear(1.0)
                               ),
                               const Icon(Icons.keyboard_arrow_down),
                             ],
@@ -179,7 +181,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.only(top: 5),
                 child: Column(
                   children: [
-                    RadioWidget(suraAudios: radioAudio, type: "radio"),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal:20),
+                      child: RadioWidget(suraAudios: radioAudio, type: "radio"),
+                    ),
                     // QuranRadioWidget(suraAudios: surahAudios, type: "quran"),
                     LayoutBuilder(
                       builder: (context, constraints) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:jebril_app/screens/home.dart';
 class SplashScreen extends StatefulWidget {
   static const String routeName = "splash_screen";
@@ -32,7 +33,14 @@ class _SplashScreenState extends State<SplashScreen> {
                 )
             ),
           ),
-          Center(child: Image.asset("assets/images/logo.png"))
+          // Center(
+          //   child: SvgPicture.asset(
+          //     'assets/images/main-logo.svg',
+          //     height: 300,
+          //     width: 300,
+          //   ),
+          // )
+          Center(child: Image.asset("assets/images/logo3.png"))
         ],
       )
     );

@@ -32,6 +32,8 @@ class CustomIconButton extends StatelessWidget {
               fontSize: 15,
               color: Colors.white,
               fontWeight: FontWeight.w500),
+            textScaler: const TextScaler.linear(1.0)
+
         )
       ],
     );

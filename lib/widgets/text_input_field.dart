@@ -46,7 +46,9 @@ class _TextInputFieldState extends State<TextInputField> {
             hintStyle: GoogleFonts.cairo(
               color: Colors.grey,
               fontSize: 17,
-              fontWeight:FontWeight.w500
+              fontWeight:FontWeight.w500,
+            ).apply(
+                // fontSizeFactor: MediaQuery.textScalerOf(context).scale(0.3)
             ),
             border: InputBorder.none,
             suffixIcon: const Icon(
@@ -59,6 +61,8 @@ class _TextInputFieldState extends State<TextInputField> {
           style: GoogleFonts.cairo(
             fontSize: 17,
             fontWeight: FontWeight.w500,
+          ).apply(
+            // fontSizeFactor: MediaQuery.textScalerOf(context).scale(0.3),
           ),
       ),
     );

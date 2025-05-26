@@ -224,11 +224,11 @@ class _QuranRadioWidgetState extends State<RadioWidget>
           //   "assets/images/background.svg",
           //   width: 800,
           //   fit: BoxFit.cover,
-          //   height: 800,
+          //   height: 100,
           // ),
           child: Image.asset(
-            "assets/images/play.png",
-            fit: BoxFit.cover,
+            "assets/images/radio-background.png",
+            fit: BoxFit.contain,
           ),
         ),
         Container(
@@ -294,6 +294,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                                 fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 27 : 17,
                                 fontWeight: FontWeight.bold,
                               ),
+                                textScaler: const TextScaler.linear(1.0)
                             ),
                           ),
                           // const SizedBox(height: 5),
@@ -331,12 +332,14 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                                     fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 18,
                                     color: Colors.white
                                 ),
+                                  textScaler: const TextScaler.linear(1.0)
                               ),
                               Text(
                                 !isRadio ? formatDuration(duration) : formatDuration(position),
                                 style: GoogleFonts.cairo(
                                     fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 18,
                                     color: Colors.white),
+                                  textScaler: const TextScaler.linear(1.0)
                               )
                             ],
                           ),

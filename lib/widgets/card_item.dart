@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 class CardItem extends StatelessWidget {
   final String image;
   final String label;
@@ -27,13 +28,22 @@ class CardItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(image , width:100,height:70),
+            SvgPicture.asset(
+              image,
+              height:50,
+              // width: 50,
+              // fit: BoxFit.cover,
+              semanticsLabel: 'App Logo',
+            ),
+            // Image.asset(image , width:100,height:70),
             const SizedBox(height:20),
             Text(label , style:GoogleFonts.cairo(
-              fontSize:20,
+              fontSize:17,
               fontWeight: FontWeight.w600,
               color: const Color(0xff606060)
-            ),textAlign:TextAlign.center)
+            ),textAlign:TextAlign.center,
+              textScaler: const TextScaler.linear(1.0),
+            )
           ],
         ),
       ),

@@ -41,7 +41,9 @@ class _QuranScreenState extends State<QuranScreen> {
   final TextEditingController _searchController = TextEditingController();
   @override
   void dispose() {
-    _searchController.dispose(); // If you have controllers
+    _searchController.dispose();
+    final suraDetailsProvider = Provider.of<SuraDetailsProvider>(context, listen: false);
+    suraDetailsProvider.reset();
     super.dispose();
   }
   List<Surah> generateSurahAudioUrls(String quranId , int numOfSuras) {
@@ -84,6 +86,10 @@ class _QuranScreenState extends State<QuranScreen> {
     super.initState();
     selectedQuran = [];
     getHollyQuranData(0);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<SuraDetailsProvider>(context, listen: false);
+      provider.reset();
+    });
   }
   int holyQuranDataLength = 0;
   Future<void> getHollyQuranData(int index) async {
@@ -124,6 +130,7 @@ class _QuranScreenState extends State<QuranScreen> {
               fontSize: 23,
               color: const Color(0xff484848),
               fontWeight: FontWeight.w600),
+            textScaler: const TextScaler.linear(1.0)
         ),
         leading: IconButton(
           icon:
@@ -194,6 +201,7 @@ class _QuranScreenState extends State<QuranScreen> {
                                           fontSize: 15,
                                           color: const Color(0xff484848),
                                           fontWeight: FontWeight.w600),
+                                        textScaler: const TextScaler.linear(1.0)
                                     ),
                                   );
                                 }).toList(),
@@ -231,6 +239,7 @@ class _QuranScreenState extends State<QuranScreen> {
                                             fontWeight: FontWeight.w600),
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 1,
+                                          textScaler: const TextScaler.linear(1.0)
                                       ),
                                     ),
                                     const Icon(
@@ -263,7 +272,7 @@ class _QuranScreenState extends State<QuranScreen> {
                         suraDetails: getFilteredSurahs(filteredName)[index],
                         onAudioPlay: (int suraNumber) {
                           setState(() {
-                            if (currentlyPlayingIndex == getFilteredSurahs(filteredName)[index].number) {
+                            if (currentlyPlayingIndex == suraNumber) {
                               currentlyPlayingIndex = null;
                               isPlaying = false;
                               // showRadio = false;
@@ -271,14 +280,15 @@ class _QuranScreenState extends State<QuranScreen> {
                               if (audioProvider2.isRadioPlaying) {
                                 audioProvider2.changeIsRadioPlaying(false);
                               }
-                              currentlyPlayingIndex = getFilteredSurahs(filteredName)[index].number;
+                              currentlyPlayingIndex = suraNumber;
                               pro.changeIndex(suraNumber);
+                              pro.changeSuraNumber(suraNumber);
                               showRadio = true;
                               isPlaying = true;
                             }
                           });
                         },
-                        isPlaying: currentlyPlayingIndex == getFilteredSurahs(filteredName)[index].number && !audioProvider2.isRadioPlaying,
+                        isPlaying: currentlyPlayingIndex == getFilteredSurahs(filteredName)[index].number && isPlaying && !audioProvider2.isRadioPlaying,
                       );
                     },
                     itemCount: getFilteredSurahs(filteredName).length,
@@ -289,6 +299,7 @@ class _QuranScreenState extends State<QuranScreen> {
                           fontSize:25,
                           color:Colors.black
                       ),
+                        textScaler: const TextScaler.linear(1.0)
                     ),
                   ),
                 ),
@@ -305,6 +316,7 @@ class _QuranScreenState extends State<QuranScreen> {
               child: SuraAudio(
                 suraAudios: surahAudios,
                 suraNumber: pro.index,
+                suraIndex: currentlyPlayingIndex ?? 0,
                 isPlaying: isPlaying,
                 rewayaName: selectedQuran.isNotEmpty ? selectedQuran[0].arTitle : "",
                 isRadioPlaying:audioProvider2.isRadioPlaying,
@@ -313,14 +325,14 @@ class _QuranScreenState extends State<QuranScreen> {
                   if(mounted){
                     setState(() {
                       isPlaying = stat;
-                      currentlyPlayingIndex = isPlaying ? pro.index : null;
+                      // currentlyPlayingIndex = pro.suraNumber;
                     });
                   }
                 },
                 onTrackChanged: (int newIndex , int suraNumber) {
                   if(mounted){
                     setState(() {
-                      currentlyPlayingIndex = newIndex;
+                      currentlyPlayingIndex = suraNumber;
                       pro.changeIndex(newIndex);
                     });
                   }

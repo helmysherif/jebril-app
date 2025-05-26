@@ -55,6 +55,7 @@ class SuraItem extends StatelessWidget {
                  fontWeight:FontWeight.w500
                ),
                textAlign:TextAlign.center,
+               textScaler: const TextScaler.linear(1.0)
              ),
            ),
          ),
@@ -66,6 +67,7 @@ class SuraItem extends StatelessWidget {
              fontWeight:FontWeight.w600
            ),
            textAlign:TextAlign.center,
+           textScaler: const TextScaler.linear(1.0)
          ),
          const Spacer(),
          Container(
