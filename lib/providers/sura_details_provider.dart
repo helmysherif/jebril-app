@@ -15,7 +15,15 @@ class SuraDetailsProvider extends ChangeNotifier{
     notifyListeners();
   }
   void changeIsPlaying(bool playing) {
-    _isPlaying = playing;
+    if (_isPlaying != playing) {
+      _isPlaying = playing;
+      notifyListeners();
+    }
+  }
+  void reset() {
+    index = 0;
+    suraNumber = 0;
+    _isPlaying = false;
     notifyListeners();
   }
 }

@@ -31,6 +31,7 @@ class _SuraAudioState extends State<SuraAudio> {
   Duration duration = Duration.zero;
   bool get _hasPrevious => _currentIndex > 0;
   bool get _hasNext => _currentIndex < widget.suraAudios.length;
+  late List<Surah> clickedSura;
   String formatDuration(Duration d) {
     final hours = d.inHours;
     final minutes = d.inMinutes.remainder(60);
@@ -61,6 +62,8 @@ class _SuraAudioState extends State<SuraAudio> {
   @override
   void initState() {
     super.initState();
+    print("suraIndex => ${widget.suraIndex}");
+    print("suraNumber => ${widget.suraNumber}");
     _currentIndex = widget.suraNumber;
     // Set up listeners first
     player.positionStream.listen((p) => setState(() => position = p));
@@ -188,12 +191,9 @@ class _SuraAudioState extends State<SuraAudio> {
   }
   Future<void> _loadTrack(int index, {bool shouldPlay = true}) async {
     try {
-      if (index < 1 || index > widget.suraAudios.length) {
-        debugPrint('Invalid index: $index');
-        return;
-      }
       await player.setSpeed(1.0);
-      final audioUrl = widget.suraAudios[index - 1].audio;
+      clickedSura = widget.suraAudios.where((audio) => audio.number == widget.suraIndex).toList();
+      final audioUrl = clickedSura[0].audio;
 
       if (audioUrl.isEmpty) {
         debugPrint('Invalid audio URL');
@@ -214,8 +214,18 @@ class _SuraAudioState extends State<SuraAudio> {
   Future<void> nextTrack() async {
     if (_hasNext) {
       _currentIndex++;
-      final newSuraNumber = widget.suraAudios[_currentIndex - 1].number;
-      widget.onTrackChanged(_currentIndex, newSuraNumber);
+      clickedSura = widget.suraAudios.where((audio) => audio.number == widget.suraIndex).toList();
+      final currentIndex = widget.suraAudios.indexWhere((audio) => audio.number == clickedSura[0].number);
+      if(currentIndex == -1) return;
+      int nextIndex = currentIndex + 1;
+      if (nextIndex >= widget.suraAudios.length) {
+        debugPrint('No more tracks available');
+        return;
+      }
+      clickedSura = [widget.suraAudios[nextIndex]];
+      _currentIndex = nextIndex + 1;
+      // final newSuraNumber = widget.suraAudios[_currentIndex - 1].number;
+      widget.onTrackChanged(_currentIndex, clickedSura[0].number);
       await _loadTrack(_currentIndex, shouldPlay: true);
       await player.play();
     }
@@ -226,13 +236,30 @@ class _SuraAudioState extends State<SuraAudio> {
     if (currentPos.inSeconds > 0.5) {
       await player.seek(Duration.zero);
     } else {
-      if (_currentIndex > 1) {
-        _currentIndex--;
-        final newSuraNumber = widget.suraAudios[_currentIndex - 1].number;
-        widget.onTrackChanged(_currentIndex, newSuraNumber);
+      try {
+        // if (_currentIndex > 1) {
+        //   _currentIndex--;
+        //   final newSuraNumber = widget.suraAudios[_currentIndex - 1].number;
+        //   widget.onTrackChanged(_currentIndex, newSuraNumber);
+        //   await _loadTrack(_currentIndex, shouldPlay: true);
+        //   await player.play();
+        // }
+        final currentIndex = widget.suraAudios.indexWhere((audio) => audio.number == clickedSura[0].number);
+        if (currentIndex == -1) {
+          debugPrint('Clicked sura not found in the list');
+          return;
+        }
+        final prevIndex = currentIndex - 1;
+        if (prevIndex < 0) {
+          debugPrint('Already at the first track');
+          return;
+        }
+        clickedSura = [widget.suraAudios[prevIndex]];
+        _currentIndex = prevIndex + 1;
+        widget.onTrackChanged(_currentIndex, clickedSura[0].number);
+        // Load and play
         await _loadTrack(_currentIndex, shouldPlay: true);
-        await player.play();
-      }
+      } catch (e){}
     }
   }
   @override
@@ -261,12 +288,14 @@ class _SuraAudioState extends State<SuraAudio> {
                       fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 15,
                       color: Colors.white
                   ),
+                  textScaler: const TextScaler.linear(1.0)
                 ),
                 Text(
                   widget.isRadioPlaying ? formatDuration(position) : formatDuration(duration),
                   style: GoogleFonts.cairo(
                       fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 15,
                       color: Colors.white),
+                    textScaler: const TextScaler.linear(1.0)
                 )
               ],
             ),
@@ -314,6 +343,7 @@ class _SuraAudioState extends State<SuraAudio> {
                             color: Colors.white,
                             fontSize:17
                         ),
+                          textScaler: const TextScaler.linear(1.0)
                       ) : const SizedBox.shrink(),
                       const SizedBox(height:5),
                       Text(
@@ -322,6 +352,7 @@ class _SuraAudioState extends State<SuraAudio> {
                             color: Colors.white,
                             fontSize:17
                         ),
+                          textScaler: const TextScaler.linear(1.0)
                       )
                     ],
                   ),
