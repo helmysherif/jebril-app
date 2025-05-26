@@ -227,7 +227,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
           //   height: 800,
           // ),
           child: Image.asset(
-            "assets/images/play.png",
+            "assets/images/radio_background.png",
             fit: BoxFit.cover,
           ),
         ),
@@ -267,8 +267,8 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                 width: screenWidth * 0.9,
                 height: calculateHeight(),
                 margin: EdgeInsets.symmetric(
-                    horizontal: !isPortrait ? screenWidth * 0.04 : 20,
-                    vertical: !isPortrait ? screenHeight * 0.07 : 20),
+                    horizontal: !isPortrait ? screenWidth * 0.04 : 0,
+                    vertical: !isPortrait ? screenHeight * 0.07 : 0),
                 // decoration: BoxDecoration(
                 //   color: const Color.fromRGBO(0, 0, 0, 0.3),
                 //   borderRadius: BorderRadius.circular(20),
@@ -328,14 +328,14 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                               Text(
                                 isRadio ? "مباشر" : formatDuration(position),
                                 style: GoogleFonts.cairo(
-                                    fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 18,
+                                    fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 15,
                                     color: Colors.white
                                 ),
                               ),
                               Text(
                                 !isRadio ? formatDuration(duration) : formatDuration(position),
                                 style: GoogleFonts.cairo(
-                                    fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 18,
+                                    fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 15,
                                     color: Colors.white),
                               )
                             ],

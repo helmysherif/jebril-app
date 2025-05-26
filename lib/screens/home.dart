@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:fluttertoast/fluttertoast.dart';
 import '../models/AudioResponse.dart';
 import '../network/audios.dart';
 import '../providers/quran_data_provider.dart';
@@ -55,16 +55,47 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
   Future<void> getAllAudiosData()async{
+    if (!mounted) return;
     setState(() => isLoading = true);
+
     try {
-      QuranDataProvider quranDataProvider = Provider.of<QuranDataProvider>(context,listen:false);
+      QuranDataProvider quranDataProvider = Provider.of<QuranDataProvider>(context, listen: false);
+
+      // Add debug print
+      print("Fetching audio data from API...");
+
       List<AudioResponse> response = await GetAudiosApi.getAudios();
+
+      // Add response validation
+      if (response.isEmpty) {
+        print("Received empty response from API");
+        throw Exception("Empty response");
+      }
+
+      print("Successfully fetched ${response.length} audio items");
       quranDataProvider.setData(response);
-      setState(() {
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() => isLoading = false);
+
+    } catch (e, stackTrace) {
+      // Detailed error logging
+      print("Error fetching audio data: $e");
+      print("Stack trace: $stackTrace");
+
+      // Optionally show error to user
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text("Failed to load audio data: ${e.toString()}")),
+      // );
+      Fluttertoast.showToast(
+        msg: "Internal Server Error",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
   @override
@@ -80,27 +111,27 @@ class _HomeScreenState extends State<HomeScreen> {
     final localizations = AppLocalizations.of(context)!;
     var taps = [
       {
-        "image": "assets/images/quran.png",
+        "image": "assets/images/المصحف المرتل.svg",
         "title": localizations.quran
       },
       {
-        "image": "assets/images/rewayat.png",
+        "image": "assets/images/الروايات المتواترة.svg",
         "title": localizations.rewayat
       },
       {
-        "image": "assets/images/prey.png",
+        "image": "assets/images/التراويح والقيام.svg",
         "title": localizations.tarawih
       },
       {
-        "image": "assets/images/doaa.png",
+        "image": "assets/images/الدعاء والذكر.svg",
         "title": localizations.prayers
       },
       {
-        "image": "assets/images/wishlist.png",
+        "image": "assets/images/قائمتي المفضلة.svg",
         "title": localizations.wishlist
       },
       {
-        "image": "assets/images/ellipise.png",
+        "image": "assets/images/المزيد.svg",
         "title": localizations.more
       }
     ];
@@ -179,7 +210,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.only(top: 5),
                 child: Column(
                   children: [
-                    RadioWidget(suraAudios: radioAudio, type: "radio"),
+                    Padding(
+                      padding: const EdgeInsets.only(left:20,right: 20,bottom: 30,top:20),
+                      child: RadioWidget(suraAudios: radioAudio, type: "radio"),
+                    ),
                     // QuranRadioWidget(suraAudios: surahAudios, type: "quran"),
                     LayoutBuilder(
                       builder: (context, constraints) {
@@ -204,7 +238,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               crossAxisCount: crossAxisCount,
                               mainAxisSpacing: 25,
                               crossAxisSpacing: 25,
-                              childAspectRatio:1.12
+                              childAspectRatio:1.15
                           ),
                           itemBuilder: (context, index) {
                             final tap = taps[index];

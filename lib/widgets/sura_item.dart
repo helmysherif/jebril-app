@@ -61,6 +61,7 @@ class SuraItem extends StatelessWidget {
          const SizedBox(width:10),
          Text(
            pro.language == 'en' ? suraDetails.englishName : suraDetails.arabicName,
+           // "${suraDetails.number}",
            style:GoogleFonts.amiri(
                fontSize:pro.language == 'en' ?23:27,
              fontWeight:FontWeight.w600

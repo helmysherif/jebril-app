@@ -258,14 +258,14 @@ class _SuraAudioState extends State<SuraAudio> {
                 Text(
                   widget.isRadioPlaying ? "مباشر" : formatDuration(position),
                   style: GoogleFonts.cairo(
-                      fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 18,
+                      fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 15,
                       color: Colors.white
                   ),
                 ),
                 Text(
                   widget.isRadioPlaying ? formatDuration(position) : formatDuration(duration),
                   style: GoogleFonts.cairo(
-                      fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 18,
+                      fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 15,
                       color: Colors.white),
                 )
               ],
