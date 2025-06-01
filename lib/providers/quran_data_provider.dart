@@ -8,13 +8,8 @@ class QuranDataProvider extends ChangeNotifier{
     allAudioResponses = data;
     notifyListeners();
   }
-  List<Subcategories> getFilteredQuranData(String filterId, int index) {
+  AudioResponse getFilteredQuranData(String filterId, int index) {
     final filteredData = allAudioResponses.where((item) => item.id == filterId).toList();
-    if (filteredData.isNotEmpty &&
-        index < filteredData.length &&
-        filteredData[index].subcategories.isNotEmpty) {
-      return filteredData[index].subcategories;
-    }
-    return [];
+    return filteredData[index];
   }
 }

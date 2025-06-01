@@ -40,7 +40,7 @@ class _TextInputFieldState extends State<TextInputField> {
           autocorrect: false,
           enableSuggestions: false,
           decoration: InputDecoration(
-            hintText: isArabic ? "البحث عن سورة" : "search by surah name",
+            hintText: isArabic ? "بحث" : "search",
             isDense: false,
             contentPadding: const EdgeInsets.symmetric(vertical: 13),
             hintStyle: GoogleFonts.cairo(

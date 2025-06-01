@@ -6,5 +6,7 @@
   "tarawih" : "التراويح و القيام",
   "more" : "المزيد",
   "wishlist" : "قائمتي المفضلة",
-  "emptySurasData" : "لا يوجد سورة بهذا الإسم"
+  "emptySurasData" : "لا يوجد سورة بهذا الإسم",
+  "tarawihTitle" : "التراويح",
+  "qiyam" : "القيام"
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jebril_app/Sura.dart';
+import 'package:jebril_app/helpers/helper_functions.dart';
 import 'package:jebril_app/network/audios.dart';
 import 'package:jebril_app/providers/langs_provider.dart';
+import 'package:jebril_app/widgets/custom_dropdown.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../constants/sura_names.dart';
@@ -11,6 +13,7 @@ import '../models/Subcategories.dart';
 import '../providers/Audio_provider.dart';
 import '../providers/quran_data_provider.dart';
 import '../providers/sura_details_provider.dart';
+import '../widgets/custom_app_bar.dart';
 import '../widgets/sura_audio.dart';
 import '../widgets/sura_item.dart';
 import '../widgets/text_input_field.dart';
@@ -29,6 +32,7 @@ class _QuranNarrativesState extends State<QuranNarratives> {
   int currentSuraNumber = 0;
   int? currentlyPlayingIndex;
   bool isPlaying = false;
+  late AudioResponse wholeData;
   final TextEditingController _searchController = TextEditingController();
   @override
   void initState(){
@@ -44,51 +48,18 @@ class _QuranNarrativesState extends State<QuranNarratives> {
     });
   }
   bool isLoading = false;
-  List<String> extractNumbersFromFilenames(List<String> filenames) {
-    final RegExp numberRegExp = RegExp(r'(\d+)\.mp3$');
-    return filenames
-        .map((filename) {
-      final match = numberRegExp.firstMatch(filename);
-      return match?.group(1); // Returns the matched digits as string
-    })
-        .whereType<String>() // Filters out null values
-        .toList();
-  }
   Future<void> getNarrativesData(int index) async {
     setState(() {
       isLoading = true;
     });
       QuranDataProvider quranDataProvider = Provider.of<QuranDataProvider>(context , listen:false);
-      quranNarratives = quranDataProvider.getFilteredQuranData("quran_narratives", 0);
+      quranNarratives = quranDataProvider.getFilteredQuranData("quran_narratives", 0).subcategories;
+    wholeData = quranDataProvider.getFilteredQuranData("quran_narratives", 0);
       selectedQuranNarratives = [quranNarratives[index]];
-      List<String> narratives = await GetAudiosApi.getNarrativeAudiosCount(quranNarratives[index].id);
-      narratives = extractNumbersFromFilenames(narratives);
-      surahAudios = generateSurahAudioUrls(narratives);
+      List<String> narratives = await GetAudiosApi.getNarrativeAudiosCount("quran_narratives" , quranNarratives[index].id);
+      narratives = HelperFunctions.extractNumbersFromFilenames(narratives);
+      surahAudios = HelperFunctions.generateSurahAudioUrls("quran_narratives" , narratives , selectedQuranNarratives[0].id);
       setState(() {isLoading = false;});
-  }
-  List<Surah> generateSurahAudioUrls(List<String> narratives) {
-    List<Surah> surahs = [];
-    if(narratives.isNotEmpty){
-      for(int i = 0;i < narratives.length;i++){
-        final narrativeNumber = int.tryParse(narratives[i]) ?? 0;
-        final suraData = suraNamesData.firstWhere(
-              (sura) => sura["number"] == narrativeNumber,
-          orElse: () => {
-            "number": narrativeNumber,
-            "englishName": "Unknown",
-            "arabicName": "غير معروف"
-          },
-        );
-        surahs.add(Surah(
-          audio:
-          'https://radiojebril.net/sheikh_jebril_audios/sounds/quran_narratives/${selectedQuranNarratives[0].id}/${narratives[i]}.mp3',
-          englishName: suraData["englishName"],
-          arabicName: suraData["arabicName"],
-          number: suraData["number"],
-        ));
-      }
-    }
-    return surahs;
   }
   List<Surah> getFilteredSurahs(String searchText) {
     if (searchText.isEmpty) {
@@ -111,8 +82,9 @@ class _QuranNarrativesState extends State<QuranNarratives> {
   @override
   void dispose() {
     // TODO: implement dispose
-    super.dispose();final suraDetailsProvider = Provider.of<SuraDetailsProvider>(context, listen: false);
-    suraDetailsProvider.reset();
+    super.dispose();
+    // final suraDetailsProvider = Provider.of<SuraDetailsProvider>(context, listen: false);
+    // suraDetailsProvider.reset();
     _searchController.dispose(); // If you have controllers
   }
   int clickedSuraNumber = 0;
@@ -124,29 +96,12 @@ class _QuranNarrativesState extends State<QuranNarratives> {
     return Scaffold(
       extendBody: true,
       backgroundColor: const Color(0xfff5f5f5),
-      appBar: AppBar(
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          backgroundColor: Colors.white,
-          centerTitle: true,
-          toolbarHeight: 100,
-          title: Text(
-            "الروايات المتواترة",
-            textAlign: TextAlign.center,
-            style: GoogleFonts.cairo(
-                fontSize: 23,
-                color: const Color(0xff484848),
-                fontWeight: FontWeight.w600),
-              textScaler: const TextScaler.linear(1.0)
-          ),
-          leading: IconButton(
-            icon:
-            const Icon(Icons.arrow_back_ios_sharp, color: Color(0xff484848)),
-            onPressed: () {
-              Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
-            },
-          ),
-        ),
+      appBar:CustomAppBar(
+        label:langProvider.language == 'en' ? wholeData.enTitle : wholeData.arTitle,
+          onPressed:(){
+            Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
+          }
+      ),
       body:Column(
         children: [
           Column(
@@ -183,73 +138,26 @@ class _QuranNarrativesState extends State<QuranNarratives> {
                             ),
                           ],
                         ),
-                        child: DropdownButton<Subcategories>(
-                          value:selectedQuranNarratives.isNotEmpty ? selectedQuranNarratives[0] : null,
-                          elevation: 0,
-                          underline: const SizedBox.shrink(),
-                          icon: const SizedBox.shrink(),
-                          iconSize: 30,
-                          isExpanded: true,
-                          borderRadius: BorderRadius.circular(10),
-                          dropdownColor:Colors.white,
-                          items: quranNarratives.map<DropdownMenuItem<Subcategories>>(
-                                  (Subcategories value) {
-                                return DropdownMenuItem<Subcategories>(
-                                  value: value,
-                                  child: Text(
-                                    langProvider.language == 'ar' ? value.arTitle : value.enTitle ?? "",
-                                    style: GoogleFonts.cairo(
-                                        fontSize: 15,
-                                        color: const Color(0xff484848),
-                                        fontWeight: FontWeight.w600),
-                                      textScaler: const TextScaler.linear(1.0)
-                                  ),
-                                );
-                              }).toList(),
-                          onChanged: (Subcategories? sura) async {
-                            if(sura != null){
-                              setState(() {
-                                isLoading = true;
-                                if (!audioProvider.isRadioPlaying) {
-                                  showRadio = false;
-                                  isPlaying = false;
-                                  currentlyPlayingIndex = null;
-                                }
-                              });
-                              surahAudios = [];
-                              selectedQuranNarratives = [sura];
-                              List<String> narratives = await GetAudiosApi.getNarrativeAudiosCount(selectedQuranNarratives[0].id);
-                              narratives = extractNumbersFromFilenames(narratives);
-                              surahAudios = generateSurahAudioUrls(narratives);
-                              setState(() {
-                                isLoading = false;
-                              });
-                            }
-                          },
-                          selectedItemBuilder: (BuildContext context) {
-                            return quranNarratives.map((Subcategories value) {
-                              return Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      langProvider.language == 'ar' ? value.arTitle : value.enTitle ?? "",
-                                      style: GoogleFonts.cairo(
-                                          fontSize: 18,
-                                          color: const Color(0xff484848),
-                                          fontWeight: FontWeight.w600),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                        textScaler: const TextScaler.linear(1.0)
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.keyboard_arrow_down,
-                                    size: 30,
-                                  ),
-                                ],
-                              );
-                            }).toList();
+                        child: CustomDropdown(
+                          items: quranNarratives,
+                          value: selectedQuranNarratives,
+                          onPressed:(Subcategories narrative)async{
+                            setState(() {
+                              isLoading = true;
+                              if (!audioProvider.isRadioPlaying) {
+                                showRadio = false;
+                                isPlaying = false;
+                                currentlyPlayingIndex = null;
+                              }
+                            });
+                            surahAudios = [];
+                            selectedQuranNarratives = [narrative];
+                            List<String> narratives = await GetAudiosApi.getNarrativeAudiosCount("quran_narratives" , selectedQuranNarratives[0].id);
+                            narratives = HelperFunctions.extractNumbersFromFilenames(narratives);
+                            surahAudios = HelperFunctions.generateSurahAudioUrls("quran_narratives" , narratives , selectedQuranNarratives[0].id);
+                            setState(() {
+                              isLoading = false;
+                            });
                           },
                         ),
                       ),

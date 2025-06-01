@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:jebril_app/Sura.dart';
 import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:jebril_app/providers/langs_provider.dart';
+import 'package:jebril_app/screens/prayers.dart';
 import 'package:jebril_app/screens/quran_narratives.dart';
 import 'package:jebril_app/screens/quran_screen.dart';
+import 'package:jebril_app/screens/tarawih.dart';
 import 'package:jebril_app/widgets/card_item.dart';
 import 'package:jebril_app/widgets/radio_widget.dart';
 import 'package:provider/provider.dart';
@@ -253,6 +255,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                   }
                                   else if(index == 1){
                                     Navigator.of(context).pushReplacementNamed(QuranNarratives.routeName);
+                                  }
+                                  else if(index == 2){
+                                    Navigator.of(context).pushReplacementNamed(Tarawih.routeName);
+                                  }
+                                  else if(index == 3){
+                                    Navigator.of(context).pushReplacementNamed(Prayers.routeName);
                                   }
                                 },
                                 id: index

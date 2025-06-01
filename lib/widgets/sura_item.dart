@@ -9,7 +9,8 @@ class SuraItem extends StatelessWidget {
   final Surah suraDetails;
   final Function(int) onAudioPlay;
   final bool isPlaying;
-  const SuraItem({super.key , required this.isPlaying , required this.suraDetails , required this.onAudioPlay});
+  final String? subTitle;
+  const SuraItem({super.key, required this.isPlaying , required this.suraDetails , required this.onAudioPlay , this.subTitle});
   @override
   Widget build(BuildContext context) {
     var pro = Provider.of<LangsProvider>(context);
@@ -60,15 +61,29 @@ class SuraItem extends StatelessWidget {
            ),
          ),
          const SizedBox(width:10),
-         Text(
-           pro.language == 'en' ? suraDetails.englishName : suraDetails.arabicName,
-           // "${suraDetails.number}",
-           style:GoogleFonts.amiri(
-               fontSize:pro.language == 'en' ?23:27,
-             fontWeight:FontWeight.w600
-           ),
-           textAlign:TextAlign.center,
-           textScaler: const TextScaler.linear(1.0)
+         Column(
+           crossAxisAlignment:CrossAxisAlignment.start,
+           children: [
+             subTitle != null ? Text(
+               subTitle!,
+                 style:GoogleFonts.cairo(
+                   fontSize:17,
+                   fontWeight:FontWeight.w600
+                 ),
+                 textAlign:TextAlign.center,
+                 textScaler: const TextScaler.linear(1.0)
+             ) : Container(),
+             Text(
+                 pro.language == 'en' ? suraDetails.englishName : suraDetails.arabicName,
+                 // "${suraDetails.number}",
+                 style:GoogleFonts.amiri(
+                     fontSize:pro.language == 'en' ?23:27,
+                     fontWeight:FontWeight.w600
+                 ),
+                 textAlign:TextAlign.center,
+                 textScaler: const TextScaler.linear(1.0)
+             )
+           ],
          ),
          const Spacer(),
          Container(

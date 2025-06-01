@@ -6,5 +6,7 @@
   "tarawih" : "Tarawih and Qiyam prayers",
   "more" : "more",
   "wishlist" : "my wishlist",
-  "emptySurasData" : "there is no sura with this name"
+  "emptySurasData" : "there is no sura with this name",
+  "tarawihTitle" : "tarawih",
+  "qiyam" : "qiyam"
 }
