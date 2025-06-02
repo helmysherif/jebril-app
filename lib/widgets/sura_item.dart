@@ -10,7 +10,8 @@ class SuraItem extends StatelessWidget {
   final Function(int) onAudioPlay;
   final bool isPlaying;
   final String? subTitle;
-  const SuraItem({super.key, required this.isPlaying , required this.suraDetails , required this.onAudioPlay , this.subTitle});
+  final bool isPrayer;
+  const SuraItem({super.key, this.isPrayer = false ,required this.isPlaying , required this.suraDetails , required this.onAudioPlay , this.subTitle});
   @override
   Widget build(BuildContext context) {
     var pro = Provider.of<LangsProvider>(context);
@@ -67,7 +68,7 @@ class SuraItem extends StatelessWidget {
              subTitle != null ? Text(
                subTitle!,
                  style:GoogleFonts.cairo(
-                   fontSize:17,
+                   fontSize:14,
                    fontWeight:FontWeight.w600
                  ),
                  textAlign:TextAlign.center,
@@ -76,8 +77,11 @@ class SuraItem extends StatelessWidget {
              Text(
                  pro.language == 'en' ? suraDetails.englishName : suraDetails.arabicName,
                  // "${suraDetails.number}",
-                 style:GoogleFonts.amiri(
+                 style: !isPrayer ? GoogleFonts.amiri(
                      fontSize:pro.language == 'en' ?23:27,
+                     fontWeight:FontWeight.w600
+                 ) : GoogleFonts.cairo(
+                     fontSize:18,
                      fontWeight:FontWeight.w600
                  ),
                  textAlign:TextAlign.center,

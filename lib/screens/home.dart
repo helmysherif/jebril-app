@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:jebril_app/Sura.dart';
 import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:jebril_app/providers/langs_provider.dart';
+import 'package:jebril_app/screens/more.dart';
 import 'package:jebril_app/screens/prayers.dart';
 import 'package:jebril_app/screens/quran_narratives.dart';
 import 'package:jebril_app/screens/quran_screen.dart';
@@ -240,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               crossAxisCount: crossAxisCount,
                               mainAxisSpacing: 25,
                               crossAxisSpacing: 25,
-                              childAspectRatio:1.15
+                              childAspectRatio:1.18
                           ),
                           itemBuilder: (context, index) {
                             final tap = taps[index];
@@ -261,6 +262,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   }
                                   else if(index == 3){
                                     Navigator.of(context).pushReplacementNamed(Prayers.routeName);
+                                  }
+                                  else if(index == 5){
+                                    Navigator.of(context).pushReplacementNamed(More.routeName);
                                   }
                                 },
                                 id: index

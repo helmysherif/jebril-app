@@ -8,5 +8,7 @@
   "wishlist" : "my wishlist",
   "emptySurasData" : "there is no sura with this name",
   "tarawihTitle" : "tarawih",
-  "qiyam" : "qiyam"
+  "qiyam" : "qiyam",
+  "socialMedia" : "social media channels",
+  "info" : "info about the Sheikh"
 }

@@ -17,8 +17,9 @@ class SuraAudio extends StatefulWidget {
   final String rewayaName;
   final Surah? radioUrl;
   final int? suraIndex;
+  final bool isPrayer;
   const SuraAudio(
-      {super.key, this.radioUrl, this.suraIndex  ,required this.isRadioPlaying ,required this.rewayaName ,required this.onTrackChanged ,required this.onPause ,required this.suraNumber, required this.isPlaying , required this.suraAudios});
+      {super.key, this.radioUrl, this.isPrayer = false ,this.suraIndex  ,required this.isRadioPlaying ,required this.rewayaName ,required this.onTrackChanged ,required this.onPause ,required this.suraNumber, required this.isPlaying , required this.suraAudios});
   @override
   State<SuraAudio> createState() => _SuraAudioState();
 }
@@ -337,7 +338,7 @@ class _SuraAudioState extends State<SuraAudio> {
                   Column(
                     crossAxisAlignment:CrossAxisAlignment.start,
                     children: [
-                      !widget.isRadioPlaying ? Text(
+                      !widget.isRadioPlaying && !widget.isPrayer ? Text(
                         "القرآن المرتل - سورة ${ widget.isRadioPlaying ? '' : widget.suraAudios[widget.suraNumber - 1].arabicName}",
                         style:GoogleFonts.cairo(
                             color: Colors.white,
@@ -347,7 +348,7 @@ class _SuraAudioState extends State<SuraAudio> {
                       ) : const SizedBox.shrink(),
                       const SizedBox(height:5),
                       Text(
-                        widget.isRadioPlaying ? "راديو الشيخ جبريل - قرآن" : "برواية ${widget.rewayaName}",
+                        widget.isRadioPlaying ? "راديو الشيخ جبريل - قرآن" : widget.isPrayer ? " ${widget.rewayaName}" : "برواية ${widget.rewayaName}",
                         style:GoogleFonts.cairo(
                             color: Colors.white,
                             fontSize:17

@@ -5,9 +5,11 @@ import 'package:jebril_app/providers/langs_provider.dart';
 import 'package:jebril_app/providers/quran_data_provider.dart';
 import 'package:jebril_app/providers/sura_details_provider.dart';
 import 'package:jebril_app/screens/home.dart';
+import 'package:jebril_app/screens/more.dart';
 import 'package:jebril_app/screens/prayers.dart';
 import 'package:jebril_app/screens/quran_narratives.dart';
 import 'package:jebril_app/screens/quran_screen.dart';
+import 'package:jebril_app/screens/social_media_screen.dart';
 import 'package:jebril_app/screens/splash_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:jebril_app/screens/tarawih.dart';
@@ -56,7 +58,9 @@ class MyApp extends StatelessWidget {
           QuranScreen.routeName : (context) => const QuranScreen(),
           QuranNarratives.routeName : (context) => const QuranNarratives(),
           Tarawih.routeName : (context) => const Tarawih(),
-          Prayers.routeName : (context) => const Prayers()
+          Prayers.routeName : (context) => const Prayers(),
+          More.routeName : (context) => const More(),
+          SocialMediaScreen.routeName : (context) => const SocialMediaScreen()
         },
         initialRoute:SplashScreen.routeName,
       ),

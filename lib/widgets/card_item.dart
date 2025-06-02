@@ -10,6 +10,8 @@ class CardItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
       onTap:() => onPressed(id),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal:10 , vertical:0),
@@ -31,7 +33,7 @@ class CardItem extends StatelessWidget {
             SvgPicture.asset(image , height:50),
             const SizedBox(height:20),
             Text(label , style:GoogleFonts.cairo(
-              fontSize:20,
+              fontSize:17,
               fontWeight: FontWeight.w600,
               color: const Color(0xff606060)
             ),textAlign:TextAlign.center)

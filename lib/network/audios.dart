@@ -33,23 +33,26 @@ class GetAudiosApi {
       return [];
     }
   }
-  // static Future<List<String>> getHollyQuranAudiosCount(String quranId) async {
-  //   try {
-  //     final response = await http.get(Uri.parse(
-  //         'https://radiojebril.net/sheikh_jebril_audios/sounds/holy_quran/$quranId'));
-  //     if (response.statusCode == 200) {
-  //       // Parse HTML to count audio links
-  //       final regex = RegExp(r'href="([^"]+\.mp3)"');
-  //       int audiosCount = regex.allMatches(response.body).length;
-  //       List<String> audioNumber = regex
-  //           .allMatches(response.body)
-  //           .map((match) => match.group(1)!)
-  //           .toList();
-  //       return audioNumber;
-  //     }
-  //     return [];
-  //   } catch (e) {
-  //     return [];
-  //   }
-  // }
+  static Future<List<String>> getPrayersAudiosNames(String type, String id) async {
+    try {
+      final response = await http.get(Uri.parse(
+          'https://radiojebril.net/sheikh_jebril_audios/sounds/$type/$id/'));
+
+      if (response.statusCode == 200) {
+        final regex = RegExp(r'href="([^"]+\.mp3)"');
+        final matches = regex.allMatches(response.body);
+
+        return matches.map((match) {
+          final encodedName = match.group(1)!;
+          // Get just the filename part
+          final filename = encodedName.split('/').last;
+          // URL decode the filename
+          return Uri.decodeComponent(filename);
+        }).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
 }
