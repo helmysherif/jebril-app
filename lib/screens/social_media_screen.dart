@@ -88,7 +88,7 @@ class SocialMediaScreen extends StatelessWidget {
         final box = context.findRenderObject() as RenderBox?;
         final result = await SharePlus.instance.share(
           ShareParams(
-            text: 'Check out $platform: $url',
+            text: '$url',
             subject: 'Share $platform link',
             sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
           ),
@@ -146,6 +146,7 @@ class SocialMediaScreen extends StatelessWidget {
                               item.title,
                               style: GoogleFonts.poppins(
                                   fontSize: 18, fontWeight: FontWeight.w500),
+                                textScaler: const TextScaler.linear(1.0)
                             ),
                           ),
                           const SizedBox(height: 5),
@@ -153,6 +154,7 @@ class SocialMediaScreen extends StatelessWidget {
                             item.email,
                             style: GoogleFonts.poppins(
                                 color: Color(0xffA8A8A8), fontSize: 15),
+                              textScaler: const TextScaler.linear(1.0)
                           )
                         ],
                       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:jebril_app/screens/Sheikh_info_screen.dart';
 import 'package:jebril_app/screens/social_media_screen.dart';
 import '../widgets/custom_app_bar.dart';
 import 'home.dart';
@@ -54,6 +55,7 @@ class More extends StatelessWidget {
                         fontWeight:FontWeight.bold,
                         color:Color(0xff484848)
                       ),
+                        textScaler: const TextScaler.linear(1.0)
                     ),
                     const Spacer(),
                     Container(
@@ -76,7 +78,9 @@ class More extends StatelessWidget {
             InkWell(
               splashColor: Colors.transparent,
               highlightColor: Colors.transparent,
-              onTap:(){},
+              onTap:(){
+                Navigator.of(context).pushReplacementNamed(SheikhInfoScreen.routeName);
+              },
               child: Container(
                 padding:EdgeInsets.all(20),
                 decoration:BoxDecoration(
@@ -102,6 +106,7 @@ class More extends StatelessWidget {
                           fontWeight:FontWeight.bold,
                           color:Color(0xff484848)
                       ),
+                        textScaler: const TextScaler.linear(1.0)
                     ),
                     const Spacer(),
                     Container(

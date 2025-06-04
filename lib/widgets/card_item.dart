@@ -36,7 +36,7 @@ class CardItem extends StatelessWidget {
               fontSize:17,
               fontWeight: FontWeight.w600,
               color: const Color(0xff606060)
-            ),textAlign:TextAlign.center)
+            ),textAlign:TextAlign.center,textScaler: const TextScaler.linear(1.0))
           ],
         ),
       ),

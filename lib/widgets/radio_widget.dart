@@ -294,6 +294,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                                 fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 27 : 17,
                                 fontWeight: FontWeight.bold,
                               ),
+                                textScaler: const TextScaler.linear(1.0)
                             ),
                           ),
                           // const SizedBox(height: 5),
@@ -331,12 +332,14 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                                     fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 15,
                                     color: Colors.white
                                 ),
+                                  textScaler: const TextScaler.linear(1.0)
                               ),
                               Text(
                                 !isRadio ? formatDuration(duration) : formatDuration(position),
                                 style: GoogleFonts.cairo(
                                     fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 22 : 15,
                                     color: Colors.white),
+                                  textScaler: const TextScaler.linear(1.0)
                               )
                             ],
                           ),

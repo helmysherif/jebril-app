@@ -4,6 +4,7 @@ import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:jebril_app/providers/langs_provider.dart';
 import 'package:jebril_app/providers/quran_data_provider.dart';
 import 'package:jebril_app/providers/sura_details_provider.dart';
+import 'package:jebril_app/screens/Sheikh_info_screen.dart';
 import 'package:jebril_app/screens/home.dart';
 import 'package:jebril_app/screens/more.dart';
 import 'package:jebril_app/screens/prayers.dart';
@@ -60,7 +61,8 @@ class MyApp extends StatelessWidget {
           Tarawih.routeName : (context) => const Tarawih(),
           Prayers.routeName : (context) => const Prayers(),
           More.routeName : (context) => const More(),
-          SocialMediaScreen.routeName : (context) => const SocialMediaScreen()
+          SocialMediaScreen.routeName : (context) => const SocialMediaScreen(),
+          SheikhInfoScreen.routeName : (context) => const SheikhInfoScreen()
         },
         initialRoute:SplashScreen.routeName,
       ),

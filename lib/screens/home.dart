@@ -156,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 10),
                         Text(localizations.name,
                             style: GoogleFonts.cairo(
-                                fontSize: 18, fontWeight: FontWeight.w600)),
+                                fontSize: 18, fontWeight: FontWeight.w600),textScaler: const TextScaler.linear(1.0)),
                         const SizedBox(width: 10),
                       ],
                     ),
@@ -194,6 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     fontSize: 18,
                                     color: const Color(0xff484848),
                                     fontWeight: FontWeight.w600),
+                                  textScaler: const TextScaler.linear(1.0)
                               ),
                               const Icon(Icons.keyboard_arrow_down),
                             ],
