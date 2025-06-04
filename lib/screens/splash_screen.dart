@@ -24,12 +24,10 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          Container(
-            decoration:const BoxDecoration(
-                image:DecorationImage(
-                  image: AssetImage('assets/images/Layer 1.png'),
-                  fit: BoxFit.cover,
-                )
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/Layer 1.png',
+              fit: BoxFit.fill,
             ),
           ),
           Center(child: Image.asset(
