@@ -49,16 +49,18 @@ class _QuranScreenState extends State<QuranScreen> {
     // suraDetailsProvider.reset();
     super.dispose();
   }
-  List<Surah> generateSurahAudioUrls(String quranId , int numOfSuras) {
+  List<Surah> generateSurahAudioUrls(Subcategories quran , int numOfSuras) {
     List<Surah> surahs = [];
+
     for (int i = 0; i < numOfSuras; i++) {
       String surahNumber = (i + 1).toString().padLeft(3, '0');
       surahs.add(Surah(
         audio:
-            'https://radiojebril.net/sheikh_jebril_audios/sounds/holy_quran/$quranId/$surahNumber.mp3',
+            'https://radiojebril.net/sheikh_jebril_audios/sounds/holy_quran/${quran.id}/$surahNumber.mp3',
         englishName: suraNamesData[i]["englishName"],
         arabicName: suraNamesData[i]["arabicName"],
         number: suraNamesData[i]["number"],
+        narrative: quran.arTitle
       ));
     }
     return surahs;
@@ -88,11 +90,16 @@ class _QuranScreenState extends State<QuranScreen> {
     // TODO: implement initState
     super.initState();
     selectedQuran = [];
-    getHollyQuranData(0);
+    wholeData = AudioResponse(arTitle: '', enTitle: '', subcategories: [], id: '');
+    // getHollyQuranData(0);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<SuraDetailsProvider>(context, listen: false);
-      provider.reset();
+      _initializeData();
     });
+  }
+  Future<void> _initializeData() async {
+    await getHollyQuranData(0);
+    final provider = Provider.of<SuraDetailsProvider>(context, listen: false);
+    provider.reset();
   }
   int holyQuranDataLength = 0;
   Future<void> getHollyQuranData(int index) async {
@@ -105,7 +112,7 @@ class _QuranScreenState extends State<QuranScreen> {
       var test = await GetAudiosApi.getNarrativeAudiosCount("holy_quran" , selectedQuran[0].id);
       holyQuranDataLength = test.length;
       setState(() {
-        surahAudios = generateSurahAudioUrls(selectedQuran[0].id , holyQuranDataLength);
+        surahAudios = generateSurahAudioUrls(selectedQuran[0] , holyQuranDataLength);
         isLoading = false;
       });
     } catch (e) {
@@ -120,12 +127,12 @@ class _QuranScreenState extends State<QuranScreen> {
     return Scaffold(
       extendBody: true,
       backgroundColor: const Color(0xfff5f5f5),
-      appBar: CustomAppBar(
-        label:langProvider.language == 'en' ? wholeData.enTitle : wholeData.arTitle,
-          onPressed:(){
-            Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
-          }
-      ),
+      // appBar: CustomAppBar(
+      //   label:langProvider.language == 'en' ? wholeData.enTitle : wholeData.arTitle,
+      //     onPressed:(){
+      //       Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
+      //     }
+      // ),
       body: Column(
         children: [
           Expanded(
@@ -180,7 +187,7 @@ class _QuranScreenState extends State<QuranScreen> {
                                 var holyQuranDataLength = await GetAudiosApi.getNarrativeAudiosCount("holy_quran" , selectedQuran[0].id);
                                 setState(() {
                                   selectedQuran = [sura];
-                                  surahAudios = generateSurahAudioUrls(sura.id , holyQuranDataLength.length);
+                                  surahAudios = generateSurahAudioUrls(sura , holyQuranDataLength.length);
                                   isHolyQuranChanged = false;
                                 });
                             },
@@ -207,13 +214,17 @@ class _QuranScreenState extends State<QuranScreen> {
                         onAudioPlay: (int suraNumber) {
                           setState(() {
                             if (currentlyPlayingIndex == suraNumber) {
+                              // Toggle playback if same sura is clicked
                               currentlyPlayingIndex = null;
                               isPlaying = false;
-                              // showRadio = false;
+                              showRadio = false;
                             } else {
+                              // Stop radio if playing
                               if (audioProvider2.isRadioPlaying) {
-                                audioProvider2.changeIsRadioPlaying(false);
+                                audioProvider2.pauseRadio();
+                                audioProvider2.wasRadioPlaying = false;
                               }
+                              // Start playing selected sura
                               currentlyPlayingIndex = suraNumber;
                               pro.changeIndex(suraNumber);
                               pro.changeSuraNumber(suraNumber);
@@ -221,6 +232,9 @@ class _QuranScreenState extends State<QuranScreen> {
                               isPlaying = true;
                             }
                           });
+                        },
+                        addToFavorite:(int index){
+                          print("index => $index");
                         },
                         isPlaying: currentlyPlayingIndex == getFilteredSurahs(filteredName)[index].number && isPlaying && !audioProvider2.isRadioPlaying,
                       );
@@ -244,7 +258,7 @@ class _QuranScreenState extends State<QuranScreen> {
               ],
             ),
           ),
-          if (showRadio || audioProvider2.isRadioPlaying)
+          if (showRadio && !audioProvider2.isRadioPlaying)
             SizedBox(
               height:180,
               child: SuraAudio(

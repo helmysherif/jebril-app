@@ -1,25 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+// import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:jebril_app/screens/Sheikh_info_screen.dart';
 import 'package:jebril_app/screens/social_media_screen.dart';
-import '../widgets/custom_app_bar.dart';
-import 'home.dart';
+// import 'package:provider/provider.dart';
+// import '../Sura.dart';
+// import '../widgets/custom_app_bar.dart';
+// import '../widgets/radio_widget.dart';
+// import 'home.dart';
 class More extends StatelessWidget {
   static const String routeName = "more";
   const More({super.key});
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
+  // final Surah radioAudio;
+  // radioAudio = Surah(
+  //   audio: "https://a6.asurahosting.com:8470/radio.mp3",
+  //   arabicName: "",
+  //   englishName: "",
+  //   number: 0,
+  // );
+  final localizations = AppLocalizations.of(context)!;
+  // AudioProvider audioProvider = Provider.of<AudioProvider>(context);
     return Scaffold(
       extendBody: true,
       backgroundColor: const Color(0xfff5f5f5),
-      appBar:CustomAppBar(
-         label:localizations.more,
-         onPressed:(){
-           Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
-         }
-      ),
       body:Padding(
         padding:EdgeInsets.all(20),
         child:Column(
@@ -28,7 +34,7 @@ class More extends StatelessWidget {
               splashColor: Colors.transparent,
               highlightColor: Colors.transparent,
               onTap:(){
-                Navigator.of(context).pushReplacementNamed(SocialMediaScreen.routeName);
+                Navigator.of(context).pushNamed(SocialMediaScreen.routeName);
               },
               child: Container(
                 padding:EdgeInsets.all(20),
@@ -79,7 +85,7 @@ class More extends StatelessWidget {
               splashColor: Colors.transparent,
               highlightColor: Colors.transparent,
               onTap:(){
-                Navigator.of(context).pushReplacementNamed(SheikhInfoScreen.routeName);
+                Navigator.of(context).pushNamed(SheikhInfoScreen.routeName);
               },
               child: Container(
                 padding:EdgeInsets.all(20),
@@ -124,7 +130,8 @@ class More extends StatelessWidget {
                   ],
                 ),
               ),
-            )
+            ),
+            // RadioWidget(suraAudios:audioProvider.radioAudio, type: "radio")
           ],
         ),
       ),

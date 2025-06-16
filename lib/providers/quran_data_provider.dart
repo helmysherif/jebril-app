@@ -9,7 +9,23 @@ class QuranDataProvider extends ChangeNotifier{
     notifyListeners();
   }
   AudioResponse getFilteredQuranData(String filterId, int index) {
-    final filteredData = allAudioResponses.where((item) => item.id == filterId).toList();
-    return filteredData[index];
+    if (allAudioResponses.isEmpty) {
+      return AudioResponse(
+          arTitle: '',
+          enTitle: '',
+          subcategories: [],
+          id: ''
+      );
+    }
+    try {
+      return allAudioResponses.firstWhere((element) => element.id == filterId);
+    } catch (e) {
+      return AudioResponse(
+          arTitle: '',
+          enTitle: '',
+          subcategories: [],
+          id: ''
+      );
+    }
   }
 }

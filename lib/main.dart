@@ -5,7 +5,9 @@ import 'package:jebril_app/providers/langs_provider.dart';
 import 'package:jebril_app/providers/quran_data_provider.dart';
 import 'package:jebril_app/providers/sura_details_provider.dart';
 import 'package:jebril_app/screens/Sheikh_info_screen.dart';
+import 'package:jebril_app/screens/favorite_screen.dart';
 import 'package:jebril_app/screens/home.dart';
+import 'package:jebril_app/screens/main-layout.dart';
 import 'package:jebril_app/screens/more.dart';
 import 'package:jebril_app/screens/prayers.dart';
 import 'package:jebril_app/screens/quran_narratives.dart';
@@ -15,6 +17,7 @@ import 'package:jebril_app/screens/splash_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:jebril_app/screens/tarawih.dart';
 import 'package:provider/provider.dart';
+
 void main() {
   runApp(
     MultiProvider(
@@ -23,15 +26,18 @@ void main() {
         ChangeNotifierProvider(create: (context) => SuraDetailsProvider()),
         ChangeNotifierProvider(create: (context) => AudioProvider()),
         ChangeNotifierProvider(create: (context) => QuranDataProvider()),
-        Provider<RouteObserver<ModalRoute>>(create: (context) => RouteObserver<ModalRoute>())
+        Provider<RouteObserver<ModalRoute>>(
+            create: (context) => RouteObserver<ModalRoute>())
         // Add more providers here as needed
       ],
       child: const MyApp(),
     ),
   );
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -52,19 +58,26 @@ class MyApp extends StatelessWidget {
           Locale('en'), // English
           Locale('ar'), // Arabic
         ],
-        locale:Locale(provider.language),
+        locale: Locale(provider.language),
         routes: {
           SplashScreen.routeName: (context) => const SplashScreen(),
-          HomeScreen.routeName : (context) => HomeScreen(),
-          QuranScreen.routeName : (context) => const QuranScreen(),
-          QuranNarratives.routeName : (context) => const QuranNarratives(),
-          Tarawih.routeName : (context) => const Tarawih(),
-          Prayers.routeName : (context) => const Prayers(),
-          More.routeName : (context) => const More(),
-          SocialMediaScreen.routeName : (context) => const SocialMediaScreen(),
-          SheikhInfoScreen.routeName : (context) => const SheikhInfoScreen()
+          HomeScreen.routeName: (context) =>
+              MainLayout(child: HomeScreen(), isHomeScreen: true , type:"home"),
+          QuranScreen.routeName: (context) =>
+              MainLayout(child: const QuranScreen() , type:"quran"),
+          QuranNarratives.routeName: (context) =>
+               MainLayout(child:const QuranNarratives() , type:"narratives"),
+          Tarawih.routeName: (context) =>  MainLayout(child:const Tarawih() , type:"tarawih"),
+          Prayers.routeName: (context) =>  MainLayout(child:const Prayers() , type:"prayers" , hideAppBar:true , showTaps:true),
+          More.routeName: (context) =>  MainLayout(child:const More() , type:"more"),
+          SocialMediaScreen.routeName: (context) =>
+               MainLayout(child:const SocialMediaScreen() , type:"media"),
+          SheikhInfoScreen.routeName: (context) =>
+               MainLayout(child:const SheikhInfoScreen() , type:"info"),
+          FavoriteScreen.routeName: (context) =>
+              MainLayout(child:const FavoriteScreen() , type:"favorite"),
         },
-        initialRoute:SplashScreen.routeName,
+        initialRoute: SplashScreen.routeName,
       ),
     );
   }

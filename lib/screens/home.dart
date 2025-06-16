@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:jebril_app/Sura.dart';
 import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:jebril_app/providers/langs_provider.dart';
+import 'package:jebril_app/screens/favorite_screen.dart';
 import 'package:jebril_app/screens/more.dart';
 import 'package:jebril_app/screens/prayers.dart';
 import 'package:jebril_app/screens/quran_narratives.dart';
@@ -38,68 +39,23 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final audioProvider = Provider.of<AudioProvider>(context, listen: false);
-      // If we should keep the radio playing (coming back from Quran screen)
-      if (audioProvider.keepRadioPlaying && audioProvider.radioAudio != null) {
-        audioProvider.changeIsRadioPlaying(true);
-        audioProvider.setKeepRadioPlaying(false); // Reset the flag
-      } else if (!audioProvider.isRadioPlaying) {
-        // Set default radio if nothing is playing
-        audioProvider.setRadioAudio(Surah(
-          audio: "https://a6.asurahosting.com:8470/radio.mp3",
-          arabicName: "",
-          englishName: "",
-          number: 0,
-        ));
-      }
-      getAllAudiosData();
-    });
-  }
-  Future<void> getAllAudiosData()async{
-    if (!mounted) return;
-    setState(() => isLoading = true);
-
-    try {
-      QuranDataProvider quranDataProvider = Provider.of<QuranDataProvider>(context, listen: false);
-
-      // Add debug print
-      print("Fetching audio data from API...");
-
-      List<AudioResponse> response = await GetAudiosApi.getAudios();
-
-      // Add response validation
-      if (response.isEmpty) {
-        print("Received empty response from API");
-        throw Exception("Empty response");
-      }
-
-      print("Successfully fetched ${response.length} audio items");
-      quranDataProvider.setData(response);
-
-    } catch (e, stackTrace) {
-      // Detailed error logging
-      print("Error fetching audio data: $e");
-      print("Stack trace: $stackTrace");
-
-      // Optionally show error to user
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(content: Text("Failed to load audio data: ${e.toString()}")),
-      // );
-      Fluttertoast.showToast(
-        msg: "Internal Server Error",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.TOP,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
-    }
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   if (!mounted) return;
+    //   final audioProvider = Provider.of<AudioProvider>(context, listen: false);
+    //   // If we should keep the radio playing (coming back from Quran screen)
+    //   if (audioProvider.keepRadioPlaying && audioProvider.radioAudio != null) {
+    //     audioProvider.changeIsRadioPlaying(true);
+    //     audioProvider.setKeepRadioPlaying(false); // Reset the flag
+    //   } else if (!audioProvider.isRadioPlaying) {
+    //     // Set default radio if nothing is playing
+    //     audioProvider.setRadioAudio(Surah(
+    //       audio: "https://a6.asurahosting.com:8470/radio.mp3",
+    //       arabicName: "",
+    //       englishName: "",
+    //       number: 0,
+    //     ));
+    //   }
+    // });
   }
   @override
   Widget build(BuildContext context) {
@@ -143,81 +99,14 @@ class _HomeScreenState extends State<HomeScreen> {
         body: SingleChildScrollView(
           child:Column(
             children: [
-              Container(
-                color: Colors.white,
-                height: 80,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Image.asset("assets/images/logo2.png", width: 60),
-                        const SizedBox(width: 10),
-                        Text(localizations.name,
-                            style: GoogleFonts.cairo(
-                                fontSize: 18, fontWeight: FontWeight.w600),textScaler: const TextScaler.linear(1.0)),
-                        const SizedBox(width: 10),
-                      ],
-                    ),
-                    DropdownButton<String>(
-                      value: langsProvider.language == 'en' ? 'English' : 'عربي',
-                      elevation: 0,
-                      underline: const SizedBox.shrink(),
-                      icon: const SizedBox.shrink(),
-                      iconSize: 30,
-                      items: languages
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (String? lang) {
-                        if (lang != null) {
-                          if (lang == 'English') {
-                            langsProvider.changeLanguage("en");
-                          } else {
-                            langsProvider.changeLanguage("ar");
-                          }
-                        }
-                      },
-                      selectedItemBuilder: (BuildContext context) {
-                        return languages.map((String value) {
-                          return Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const SizedBox(width: 4),
-                              Text(
-                                value,
-                                style: GoogleFonts.cairo(
-                                    fontSize: 18,
-                                    color: const Color(0xff484848),
-                                    fontWeight: FontWeight.w600),
-                                  textScaler: const TextScaler.linear(1.0)
-                              ),
-                              const Icon(Icons.keyboard_arrow_down),
-                            ],
-                          );
-                        }).toList();
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              isLoading ? SizedBox(
-                height: MediaQuery.of(context).size.height * 0.85,
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
-              ) : Padding(
+              Padding(
                 padding: const EdgeInsets.only(top: 5),
                 child: Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left:20,right: 20,bottom: 30,top:20),
-                      child: RadioWidget(suraAudios: radioAudio, type: "radio"),
-                    ),
+                    // Padding(
+                    //   padding: const EdgeInsets.only(left:20,right: 20,bottom: 30,top:20),
+                    //   child: RadioWidget(suraAudios: radioAudio, type: "radio"),
+                    // ),
                     // QuranRadioWidget(suraAudios: surahAudios, type: "quran"),
                     LayoutBuilder(
                       builder: (context, constraints) {
@@ -252,20 +141,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onPressed: (int id) {
                                   if(index == 0){
                                     final audioProvider = Provider.of<AudioProvider>(context, listen: false);
-                                    audioProvider.prepareForNavigation();
-                                    Navigator.of(context).pushReplacementNamed(QuranScreen.routeName);
+                                    // audioProvider.prepareForNavigation();
+                                    Navigator.of(context).pushNamed(QuranScreen.routeName);
                                   }
                                   else if(index == 1){
-                                    Navigator.of(context).pushReplacementNamed(QuranNarratives.routeName);
+                                    Navigator.of(context).pushNamed(QuranNarratives.routeName);
                                   }
                                   else if(index == 2){
-                                    Navigator.of(context).pushReplacementNamed(Tarawih.routeName);
+                                    Navigator.of(context).pushNamed(Tarawih.routeName);
                                   }
                                   else if(index == 3){
-                                    Navigator.of(context).pushReplacementNamed(Prayers.routeName);
+                                    Navigator.of(context).pushNamed(Prayers.routeName);
+                                  }
+                                  else if(index == 4){
+                                    Navigator.of(context).pushNamed(FavoriteScreen.routeName);
                                   }
                                   else if(index == 5){
-                                    Navigator.of(context).pushReplacementNamed(More.routeName);
+                                    Navigator.of(context).pushNamed(More.routeName);
                                   }
                                 },
                                 id: index

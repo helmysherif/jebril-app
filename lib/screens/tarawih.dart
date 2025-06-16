@@ -93,12 +93,12 @@ class _TarawihState extends State<Tarawih> {
     return Scaffold(
       extendBody: true,
       backgroundColor: const Color(0xfff5f5f5),
-      appBar:CustomAppBar(
-        label:langsProvider.language == 'en' ? taraweehData.enTitle : taraweehData.arTitle,
-          onPressed:(){
-            Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
-          }
-      ),
+      // appBar:CustomAppBar(
+      //   label:langsProvider.language == 'en' ? taraweehData.enTitle : taraweehData.arTitle,
+      //     onPressed:(){
+      //       Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
+      //     }
+      // ),
       body: Column(
         children: [
           Padding(
@@ -176,6 +176,10 @@ class _TarawihState extends State<Tarawih> {
                         currentlyPlayingIndex = null;
                         isPlaying = false;
                       } else {
+                        if (audioProvider.isRadioPlaying) {
+                          audioProvider.pauseRadio();
+                          audioProvider.wasRadioPlaying = false;
+                        }
                         currentlyPlayingIndex = suraNumber;
                         suraDetailsProvider.changeSuraNumber(suraNumber);
                         showRadio = true;
@@ -198,7 +202,7 @@ class _TarawihState extends State<Tarawih> {
               ),
             ),
           ),
-          if (showRadio || audioProvider.isRadioPlaying)
+          if (showRadio && !audioProvider.isRadioPlaying)
             SizedBox(
               height:180,
               child: SuraAudio(

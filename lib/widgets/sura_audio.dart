@@ -302,9 +302,9 @@ class _SuraAudioState extends State<SuraAudio> {
             ),
             SliderTheme(
               data: const SliderThemeData(
-                  trackHeight: 4.0,
+                  trackHeight: 2.0,
                   thumbShape: RoundSliderThumbShape(
-                    enabledThumbRadius: 8.0,
+                    enabledThumbRadius: 6.0,
                     disabledThumbRadius: 6.0,
                   ),
                   activeTrackColor: Color(0xff00908B),

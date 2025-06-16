@@ -6,9 +6,12 @@ import '../screens/home.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String label;
   final VoidCallback onPressed;
-  const CustomAppBar({super.key , required this.label , required this.onPressed});
+  final PreferredSizeWidget? bottom;
+  const CustomAppBar({super.key , required this.label , required this.onPressed, this.bottom});
+
   @override
   Size get preferredSize => const Size.fromHeight(100);
+
   @override
   Widget build(BuildContext context) {
     AudioProvider audioProvider2 = Provider.of<AudioProvider>(context);
@@ -32,10 +35,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         icon:
         const Icon(Icons.arrow_back_ios_sharp, color: Color(0xff484848)),
         onPressed: () {
-          audioProvider2.changeIsRadioPlaying(false);
+          // audioProvider2.changeIsRadioPlaying(false);
           onPressed();
         },
       ),
+      bottom: bottom
     );
   }
 }

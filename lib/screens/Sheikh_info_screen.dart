@@ -24,11 +24,11 @@ class SheikhInfoScreen extends StatelessWidget {
     return Scaffold(
       extendBody: true,
       backgroundColor: const Color(0xfff5f5f5),
-      appBar: CustomAppBar(
-        label: localizations.sheikhInfo,
-        onPressed: () {
-          Navigator.of(context).pushReplacementNamed(More.routeName);
-      }),
+      // appBar: CustomAppBar(
+      //   label: localizations.sheikhInfo,
+      //   onPressed: () {
+      //     Navigator.of(context).pushReplacementNamed(More.routeName);
+      // }),
       body: SingleChildScrollView(
         child: Container(
           width: double.infinity,

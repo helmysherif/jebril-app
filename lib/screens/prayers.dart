@@ -157,7 +157,7 @@ class _PrayersState extends State<Prayers> with SingleTickerProviderStateMixin {
           icon:
               const Icon(Icons.arrow_back_ios_sharp, color: Color(0xff484848)),
           onPressed: () {
-            audioProvider.changeIsRadioPlaying(false);
+            // audioProvider.changeIsRadioPlaying(false);
             Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
           },
         ),
@@ -231,9 +231,10 @@ class _PrayersState extends State<Prayers> with SingleTickerProviderStateMixin {
                               isPlaying = false;
                               // showRadio = false;
                             } else {
-                              // if (audioProvider.isRadioPlaying) {
-                              //   audioProvider.changeIsRadioPlaying(false);
-                              // }
+                              if (audioProvider.isRadioPlaying) {
+                                audioProvider.pauseRadio();
+                                audioProvider.wasRadioPlaying = false;
+                              }
                               currentlyPlayingIndex = suraNumber;
                               currentAudio = audiosData[currentlyPlayingIndex! - 1];
                               suraDetailsProvider.changeSuraNumber(suraNumber);
@@ -250,7 +251,7 @@ class _PrayersState extends State<Prayers> with SingleTickerProviderStateMixin {
               }).toList(),
             ),
           ),
-          if (showRadio || audioProvider.isRadioPlaying)
+          if (showRadio && !audioProvider.isRadioPlaying)
             SuraAudio(
               suraAudios: audiosData,
               isPrayer : true,

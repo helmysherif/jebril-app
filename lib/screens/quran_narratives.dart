@@ -96,12 +96,12 @@ class _QuranNarrativesState extends State<QuranNarratives> {
     return Scaffold(
       extendBody: true,
       backgroundColor: const Color(0xfff5f5f5),
-      appBar:CustomAppBar(
-        label:langProvider.language == 'en' ? wholeData.enTitle : wholeData.arTitle,
-          onPressed:(){
-            Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
-          }
-      ),
+      // appBar:CustomAppBar(
+      //   label:langProvider.language == 'en' ? wholeData.enTitle : wholeData.arTitle,
+      //     onPressed:(){
+      //       Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
+      //     }
+      // ),
       body:Column(
         children: [
           Column(
@@ -179,9 +179,10 @@ class _QuranNarrativesState extends State<QuranNarratives> {
                         isPlaying = false;
                         // showRadio = false;
                       } else {
-                        // if (audioProvider.isRadioPlaying) {
-                        //   audioProvider.changeIsRadioPlaying(false);
-                        // }
+                        if (audioProvider.isRadioPlaying) {
+                          audioProvider.pauseRadio();
+                          audioProvider.wasRadioPlaying = false;
+                        }
                         currentlyPlayingIndex = suraNumber;
                         suraDetailsProvider.changeSuraNumber(suraNumber);
                         showRadio = true;
@@ -205,7 +206,7 @@ class _QuranNarrativesState extends State<QuranNarratives> {
             ),
           ),
           // Text("${suraDetailsProvider.suraNumber}" , style:TextStyle(fontSize:30)),
-          if (showRadio || audioProvider.isRadioPlaying)
+          if (showRadio && !audioProvider.isRadioPlaying)
             SizedBox(
               height:180,
               child: SuraAudio(

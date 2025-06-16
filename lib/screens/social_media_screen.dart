@@ -105,11 +105,11 @@ class SocialMediaScreen extends StatelessWidget {
     return Scaffold(
       extendBody: true,
       backgroundColor: const Color(0xfff5f5f5),
-      appBar: CustomAppBar(
-          label: localizations.socialMedia,
-          onPressed: () {
-            Navigator.of(context).pushReplacementNamed(More.routeName);
-          }),
+      // appBar: CustomAppBar(
+      //     label: localizations.socialMedia,
+      //     onPressed: () {
+      //       Navigator.of(context).pop();
+      //     }),
       body: Container(
         padding: EdgeInsets.all(20),
         margin: EdgeInsets.all(20),
@@ -125,99 +125,101 @@ class SocialMediaScreen extends StatelessWidget {
                 offset: Offset(0, 5), // Changes position of shadow (x,y)
               )
             ]),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ...socialMedia.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 30),
-                  child: Row(
-                    children: [
-                      Image.asset(item.imageUrl, width: 60),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              _launchURL(item.link);
-                            },
-                            child: Text(
-                              item.title,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ...socialMedia.map((item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 22),
+                    child: Row(
+                      children: [
+                        Image.asset(item.imageUrl, width: 60),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                _launchURL(item.link);
+                              },
+                              child: Text(
+                                item.title,
+                                style: GoogleFonts.poppins(
+                                    fontSize: 18, fontWeight: FontWeight.w500),
+                                  textScaler: const TextScaler.linear(1.0)
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              item.email,
                               style: GoogleFonts.poppins(
-                                  fontSize: 18, fontWeight: FontWeight.w500),
+                                  color: Color(0xffA8A8A8), fontSize: 15),
                                 textScaler: const TextScaler.linear(1.0)
+                            )
+                          ],
+                        ),
+                        const Spacer(),
+                        Row(
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                FlutterClipboard.copy(item.link).then((_) {
+                                  Fluttertoast.showToast(
+                                    msg:'${item.title} url is copied!',
+                                    toastLength: Toast.LENGTH_LONG,
+                                    gravity: ToastGravity.TOP,
+                                    backgroundColor: Colors.green,
+                                    textColor: Colors.white,
+                                    fontSize: 16.0,
+                                  );
+                                });
+                              },
+                              child: SvgPicture.asset(
+                                "assets/images/Copy.svg",
+                                width: 40,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            item.email,
-                            style: GoogleFonts.poppins(
-                                color: Color(0xffA8A8A8), fontSize: 15),
-                              textScaler: const TextScaler.linear(1.0)
-                          )
-                        ],
-                      ),
-                      const Spacer(),
-                      Row(
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              FlutterClipboard.copy(item.link).then((_) {
-                                Fluttertoast.showToast(
-                                  msg:'${item.title} url is copied!',
-                                  toastLength: Toast.LENGTH_LONG,
-                                  gravity: ToastGravity.TOP,
-                                  backgroundColor: Colors.green,
-                                  textColor: Colors.white,
-                                  fontSize: 16.0,
-                                );
-                              });
-                            },
-                            child: SvgPicture.asset(
-                              "assets/images/Copy.svg",
-                              width: 40,
+                            const SizedBox(width: 5),
+                            InkWell(
+                              onTap:(){
+                                _shareUrl(context , item.link, item.title);
+                              },
+                              child: SvgPicture.asset(
+                                "assets/images/share.svg",
+                                width: 40,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 5),
-                          InkWell(
-                            onTap:(){
-                              _shareUrl(context , item.link, item.title);
-                            },
-                            child: SvgPicture.asset(
-                              "assets/images/share.svg",
-                              width: 40,
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ))
-            // ...socialMedia.map((item) => ListTile(
-            //   contentPadding: const EdgeInsets.only(bottom:15),
-            //   leading: Image.asset(item.imageUrl),
-            //   title: Text(
-            //     item.title,
-            //     style:GoogleFonts.poppins(
-            //       fontSize:18,
-            //       fontWeight:FontWeight.w500
-            //     ),
-            //   ),
-            //   subtitle: Text(
-            //     item.email,
-            //     style:GoogleFonts.poppins(
-            //       color:Color(0xffA8A8A8),
-            //       fontSize:15
-            //     ),
-            //   ),
-            //   onTap: () {
-            //     if (item.link.isNotEmpty) {
-            //       // _launchURL(item.link);
-            //     }
-            //   },
-            // )).toList(),
-          ],
+                          ],
+                        )
+                      ],
+                    ),
+                  ))
+              // ...socialMedia.map((item) => ListTile(
+              //   contentPadding: const EdgeInsets.only(bottom:15),
+              //   leading: Image.asset(item.imageUrl),
+              //   title: Text(
+              //     item.title,
+              //     style:GoogleFonts.poppins(
+              //       fontSize:18,
+              //       fontWeight:FontWeight.w500
+              //     ),
+              //   ),
+              //   subtitle: Text(
+              //     item.email,
+              //     style:GoogleFonts.poppins(
+              //       color:Color(0xffA8A8A8),
+              //       fontSize:15
+              //     ),
+              //   ),
+              //   onTap: () {
+              //     if (item.link.isNotEmpty) {
+              //       // _launchURL(item.link);
+              //     }
+              //   },
+              // )).toList(),
+            ],
+          ),
         ),
       ),
     );
