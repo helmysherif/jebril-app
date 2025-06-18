@@ -58,7 +58,7 @@ class _TarawihState extends State<Tarawih> {
       selectedData = [taraweehData.subcategories.first];
       List<String> taraweehAudiosData = await GetAudiosApi.getNarrativeAudiosCount("taraweeh" , selectedData[0].id);
       taraweehAudiosData = HelperFunctions.extractNumbersFromFilenames(taraweehAudiosData);
-      surahAudios = HelperFunctions.generateSurahAudioUrls("taraweeh" , taraweehAudiosData , selectedData[0].id);
+      surahAudios = HelperFunctions.generateSurahAudioUrls("taraweeh" , taraweehAudiosData , selectedData[0]);
       setState(() {
         isLoading = false;
       });
@@ -153,7 +153,7 @@ class _TarawihState extends State<Tarawih> {
                         selectedData = [sura];
                         List<String> taraweehAudiosData = await GetAudiosApi.getNarrativeAudiosCount("taraweeh" , selectedData[0].id);
                         taraweehAudiosData = HelperFunctions.extractNumbersFromFilenames(taraweehAudiosData);
-                        surahAudios = HelperFunctions.generateSurahAudioUrls("taraweeh" , taraweehAudiosData , selectedData[0].id);
+                        surahAudios = HelperFunctions.generateSurahAudioUrls("taraweeh" , taraweehAudiosData , selectedData[0]);
                         setState(() {
                           isLoading = false;
                         });
@@ -170,7 +170,7 @@ class _TarawihState extends State<Tarawih> {
                 return SuraItem(
                   suraDetails: getFilteredSurahs(filteredName)[index],
                   subTitle:"صلاة التراويح و القيام",
-                  onAudioPlay: (int suraNumber) {
+                  onAudioPlay: (int suraNumber , String uniqueName) {
                     setState(() {
                       if (currentlyPlayingIndex == suraNumber) {
                         currentlyPlayingIndex = null;

@@ -11,7 +11,7 @@ class SharedPreferenceHelper {
     final favorites = await getFavoriteSurahs();
 
     // Check if already exists by number
-    if (!favorites.any((s) => s.number == sura.number && s.arabicName == sura.arabicName && s.englishName == sura.englishName)) {
+    if (!favorites.any((s) => s.number == sura.number && s.arabicName == sura.arabicName && s.englishName == sura.englishName && s.narrative == sura.narrative)) {
       favorites.add(sura);
       await _saveFavorites(favorites);
     }
@@ -35,7 +35,7 @@ class SharedPreferenceHelper {
   // Check if a surah is favorite
   static Future<bool> isFavorite(Surah sura) async {
     final favorites = await getFavoriteSurahs();
-    return favorites.any((s) => s.number == sura.number && s.arabicName == sura.arabicName && s.englishName == sura.englishName);
+    return favorites.any((s) => s.number == sura.number && s.arabicName == sura.arabicName && s.englishName == sura.englishName && s.narrative == sura.narrative);
   }
 
   // Helper method to save favorites

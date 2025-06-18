@@ -10,8 +10,8 @@ class CustomIconButton extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 35,
-          height: 35,
+          width: 30,
+          height: 30,
           decoration: BoxDecoration(
               color: const Color.fromRGBO(
                   255, 255, 255, 0.3),
@@ -21,15 +21,16 @@ class CustomIconButton extends StatelessWidget {
             icon: Icon(
               icon,
               color: Colors.white,
-              size: 20,
+              size: 19,
             ),
+            padding: EdgeInsets.zero,
           ),
         ),
         const SizedBox(height: 5),
         Text(
           label,
           style: GoogleFonts.cairo(
-              fontSize: 15,
+              fontSize: 14,
               color: Colors.white,
               fontWeight: FontWeight.w500),
             textScaler: const TextScaler.linear(1.0)

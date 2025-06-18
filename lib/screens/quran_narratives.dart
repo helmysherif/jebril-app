@@ -58,7 +58,7 @@ class _QuranNarrativesState extends State<QuranNarratives> {
       selectedQuranNarratives = [quranNarratives[index]];
       List<String> narratives = await GetAudiosApi.getNarrativeAudiosCount("quran_narratives" , quranNarratives[index].id);
       narratives = HelperFunctions.extractNumbersFromFilenames(narratives);
-      surahAudios = HelperFunctions.generateSurahAudioUrls("quran_narratives" , narratives , selectedQuranNarratives[0].id);
+      surahAudios = HelperFunctions.generateSurahAudioUrls("quran_narratives" , narratives , selectedQuranNarratives[0]);
       setState(() {isLoading = false;});
   }
   List<Surah> getFilteredSurahs(String searchText) {
@@ -154,7 +154,7 @@ class _QuranNarrativesState extends State<QuranNarratives> {
                             selectedQuranNarratives = [narrative];
                             List<String> narratives = await GetAudiosApi.getNarrativeAudiosCount("quran_narratives" , selectedQuranNarratives[0].id);
                             narratives = HelperFunctions.extractNumbersFromFilenames(narratives);
-                            surahAudios = HelperFunctions.generateSurahAudioUrls("quran_narratives" , narratives , selectedQuranNarratives[0].id);
+                            surahAudios = HelperFunctions.generateSurahAudioUrls("quran_narratives" , narratives , selectedQuranNarratives[0]);
                             setState(() {
                               isLoading = false;
                             });
@@ -172,7 +172,7 @@ class _QuranNarrativesState extends State<QuranNarratives> {
               itemBuilder:(context, index){
                 return SuraItem(
                   suraDetails: getFilteredSurahs(filteredName)[index],
-                  onAudioPlay: (int suraNumber) {
+                  onAudioPlay: (int suraNumber , String uniqueName) {
                     setState(() {
                       if (currentlyPlayingIndex == suraNumber) {
                         currentlyPlayingIndex = null;

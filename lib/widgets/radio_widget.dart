@@ -5,6 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/langs_provider.dart';
+import 'custom_icon_button.dart';
 class RadioWidget extends StatefulWidget {
   final int initialIndex;
   final String type;
@@ -157,6 +158,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
           child: Image.asset(
             widget.inNotHomeScreen ? "assets/images/play2.jpg" : "assets/images/radio_background.png",
             fit: BoxFit.cover,
+            height: 190,
           ),
         ),
         Container(
@@ -193,7 +195,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
               }
               return Container(
                 width: widget.inNotHomeScreen ? screenWidth : screenWidth * 0.9,
-                height: widget.inNotHomeScreen ? 180 : calculateHeight(),
+                height: widget.inNotHomeScreen ? 190 : calculateHeight(),
                 margin: EdgeInsets.symmetric(
                     horizontal: !isPortrait ? screenWidth * 0.04 : 0,
                     vertical: !isPortrait ? screenHeight * 0.07 : 0),
@@ -210,7 +212,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                     children: [
                       // Text("$screenWidth" , style:TextStyle(color:Colors.white , fontSize:20)),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: !widget.inNotHomeScreen ? MainAxisAlignment.spaceBetween : MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if(!widget.inNotHomeScreen) Padding(
@@ -219,34 +221,36 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                               'راديو الشيخ جبريل - قرآن',
                               style: GoogleFonts.cairo(
                                 color: Colors.white,
-                                fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 27 : 18,
+                                fontSize: MediaQuery.of(context).size.width > 800 ? 27 : !isPortrait ? 27 : 15,
                                 fontWeight: FontWeight.w500,
                               ),
                                 textScaler: const TextScaler.linear(1.0)
                             ),
                           ),
-                          // const SizedBox(height: 5),
-                          // Row(
-                          //   children: [
-                          //     CustomIconButton(
-                          //       icon: Icons.access_time_rounded,
-                          //       label: "مؤقت",
-                          //       onPressed:(){},
-                          //     ),
-                          //     const SizedBox(width: 10),
-                          //     CustomIconButton(
-                          //       icon: Icons.share,
-                          //       label: "مشاركة",
-                          //       onPressed:(){},
-                          //     ),
-                          //     const SizedBox(width: 10),
-                          //     CustomIconButton(
-                          //       icon: Icons.arrow_forward_ios,
-                          //       label: "الراديو",
-                          //       onPressed:(){},
-                          //     )
-                          //   ],
-                          // )
+                          Padding(
+                            padding: const EdgeInsets.only(top:10),
+                            child: Row(
+                              children: [
+                                CustomIconButton(
+                                  icon: Icons.access_time_rounded,
+                                  label: "مؤقت",
+                                  onPressed:(){},
+                                ),
+                                const SizedBox(width: 10),
+                                CustomIconButton(
+                                  icon: Icons.share,
+                                  label: "مشاركة",
+                                  onPressed:(){},
+                                ),
+                                const SizedBox(width: 10),
+                                CustomIconButton(
+                                  icon: Icons.arrow_forward_ios,
+                                  label: "الراديو",
+                                  onPressed:(){},
+                                )
+                              ],
+                            ),
+                          )
                         ],
                       ),
                       Column(
@@ -283,6 +287,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                                   return Text(
                                     formatDuration(position),
                                     style: const TextStyle(color: Colors.white),
+                                      textScaler: const TextScaler.linear(1.0)
                                   );
                                 },
                               ),

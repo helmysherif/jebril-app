@@ -21,38 +21,38 @@ class SocialMediaScreen extends StatelessWidget {
       SocialMedia(
           id: 1,
           title: "Facebook",
-          imageUrl: "assets/images/facebook.png",
+          imageUrl: "assets/images/media/facebook.png",
           email: "Mohamed Jebril.com",
           link: "https://www.facebook.com/share/1923Mdqryp/?mibextid=wwXIfr"),
       SocialMedia(
           id: 2,
           title: "Instagram",
-          imageUrl: "assets/images/instagram.png",
+          imageUrl: "assets/images/media/instagram.png",
           email: "Mohamed Jebril.com",
           link:
               "https://www.instagram.com/sheikhjebril?igsh=MWFwbHdjZzdha3o2eg=="),
       SocialMedia(
           id: 3,
           title: "Youtube",
-          imageUrl: "assets/images/youtube.png",
+          imageUrl: "assets/images/media/youtube.png",
           email: "Mohamed Jebril.com",
           link: "https://www.youtube.com/@Muhammad_Jebril"),
       SocialMedia(
           id: 4,
           title: "X",
-          imageUrl: "assets/images/twitter.png",
+          imageUrl: "assets/images/media/X.png",
           email: "Mohamed Jebril.com",
           link: "https://x.com/muhammad_jebril?s=11&t=67CgPt4TgW11qHs6QTyZ7w"),
       SocialMedia(
           id: 5,
           title: "Soundcloud",
-          imageUrl: "assets/images/soundcloud.png",
+          imageUrl: "assets/images/media/soundcloud.png",
           email: "Mohamed Jebril.com",
           link: "https://on.soundcloud.com/6MqgzzpXA7XVGBjz9"),
       SocialMedia(
           id: 6,
           title: "Website",
-          imageUrl: "assets/images/website.png",
+          imageUrl: "assets/images/media/website.png",
           email: "Mohamed Jebril.com",
           link: "https://www.jebril.com/")
     ];
@@ -134,7 +134,10 @@ class SocialMediaScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 22),
                     child: Row(
                       children: [
-                        Image.asset(item.imageUrl, width: 60),
+                        // SvgPicture.asset(item.imageUrl , height:45),
+                        Image.asset(item.imageUrl, width: 45,
+                          height: 50, // Add fixed height to maintain aspect ratio
+                          fit: BoxFit.contain),
                         const SizedBox(width: 10),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +149,7 @@ class SocialMediaScreen extends StatelessWidget {
                               child: Text(
                                 item.title,
                                 style: GoogleFonts.poppins(
-                                    fontSize: 18, fontWeight: FontWeight.w500),
+                                    fontSize: 17, fontWeight: FontWeight.w500),
                                   textScaler: const TextScaler.linear(1.0)
                               ),
                             ),
@@ -154,7 +157,7 @@ class SocialMediaScreen extends StatelessWidget {
                             Text(
                               item.email,
                               style: GoogleFonts.poppins(
-                                  color: Color(0xffA8A8A8), fontSize: 15),
+                                  color: Color(0xffA8A8A8), fontSize: 14),
                                 textScaler: const TextScaler.linear(1.0)
                             )
                           ],

@@ -4,12 +4,15 @@ class Surah {
   final String arabicName;
   final int number;
   final String? narrative;
+  final bool isDownloaded;
+  String get uniqueId => '$number-${narrative.hashCode}';
   Surah({
     required this.audio,
     required this.englishName,
     required this.arabicName,
     required this.number,
-    this.narrative
+    this.narrative,
+    this.isDownloaded = false
   });
   Map<String, dynamic> toJson() {
     return {

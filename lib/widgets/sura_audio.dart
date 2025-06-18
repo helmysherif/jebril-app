@@ -18,8 +18,10 @@ class SuraAudio extends StatefulWidget {
   final Surah? radioUrl;
   final int? suraIndex;
   final bool isPrayer;
+  final bool isFavorite;
+  final String? uniqueId;
   const SuraAudio(
-      {super.key, this.radioUrl, this.isPrayer = false ,this.suraIndex  ,required this.isRadioPlaying ,required this.rewayaName ,required this.onTrackChanged ,required this.onPause ,required this.suraNumber, required this.isPlaying , required this.suraAudios});
+      {super.key, this.radioUrl, this.uniqueId ,this.isFavorite = false ,this.isPrayer = false ,this.suraIndex  ,required this.isRadioPlaying ,required this.rewayaName ,required this.onTrackChanged ,required this.onPause ,required this.suraNumber, required this.isPlaying , required this.suraAudios});
   @override
   State<SuraAudio> createState() => _SuraAudioState();
 }
@@ -104,7 +106,6 @@ class _SuraAudioState extends State<SuraAudio> {
   @override
   void didUpdateWidget(covariant SuraAudio oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     // Handle switching between radio and surah modes
     if (widget.isRadioPlaying != oldWidget.isRadioPlaying) {
       if (widget.isRadioPlaying) {
@@ -112,6 +113,9 @@ class _SuraAudioState extends State<SuraAudio> {
       } else {
         _loadTrack(widget.suraNumber, shouldPlay: widget.isPlaying);
       }
+    }
+    else if(widget.uniqueId != oldWidget.uniqueId){
+      _loadTrack(widget.suraNumber, shouldPlay: widget.isPlaying);
     }
     // Handle radio URL changes
     else if (widget.isRadioPlaying &&
@@ -193,7 +197,11 @@ class _SuraAudioState extends State<SuraAudio> {
   Future<void> _loadTrack(int index, {bool shouldPlay = true}) async {
     try {
       await player.setSpeed(1.0);
-      clickedSura = widget.suraAudios.where((audio) => audio.number == widget.suraIndex).toList();
+      if(!widget.isFavorite){
+        clickedSura = widget.suraAudios.where((audio) => audio.number == widget.suraIndex).toList();
+      } else {
+        clickedSura = widget.suraAudios.where((audio) => audio.uniqueId == widget.uniqueId).toList();
+      }
       final audioUrl = clickedSura[0].audio;
 
       if (audioUrl.isEmpty) {
@@ -215,8 +223,13 @@ class _SuraAudioState extends State<SuraAudio> {
   Future<void> nextTrack() async {
     if (_hasNext) {
       _currentIndex++;
-      clickedSura = widget.suraAudios.where((audio) => audio.number == widget.suraIndex).toList();
-      final currentIndex = widget.suraAudios.indexWhere((audio) => audio.number == clickedSura[0].number);
+      int currentIndex = 0;
+      if(!widget.isFavorite){
+        clickedSura = widget.suraAudios.where((audio) => audio.number == widget.suraIndex).toList();
+        currentIndex = widget.suraAudios.indexWhere((audio) => audio.number == clickedSura[0].number);
+      } else {
+        currentIndex = widget.suraAudios.indexWhere((audio) => audio.uniqueId == clickedSura[0].uniqueId);
+      }
       if(currentIndex == -1) return;
       int nextIndex = currentIndex + 1;
       if (nextIndex >= widget.suraAudios.length) {
@@ -245,7 +258,13 @@ class _SuraAudioState extends State<SuraAudio> {
         //   await _loadTrack(_currentIndex, shouldPlay: true);
         //   await player.play();
         // }
-        final currentIndex = widget.suraAudios.indexWhere((audio) => audio.number == clickedSura[0].number);
+        int currentIndex = 0;
+        if(!widget.isFavorite){
+          currentIndex = widget.suraAudios.indexWhere((audio) => audio.number == clickedSura[0].number);
+        } else {
+          currentIndex = widget.suraAudios.indexWhere((audio) => audio.uniqueId == clickedSura[0].uniqueId);
+        }
+        print("currentIndex => $currentIndex");
         if (currentIndex == -1) {
           debugPrint('Clicked sura not found in the list');
           return;

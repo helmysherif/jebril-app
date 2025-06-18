@@ -156,7 +156,7 @@ class _MainLayoutState extends State<MainLayout> {
                         languages.map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
-                        child: Text(value),
+                        child: Text(value , textScaler: const TextScaler.linear(1.0)),
                       );
                     }).toList(),
                     onChanged: (String? lang) {

@@ -1,15 +1,20 @@
+import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jebril_app/Sura.dart';
 import 'package:jebril_app/helpers/shared_prefs_helper.dart';
 import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:provider/provider.dart';
-
+import 'package:permission_handler/permission_handler.dart';
 import '../providers/langs_provider.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
 
 class SuraItem extends StatefulWidget {
   final Surah suraDetails;
-  final Function(int) onAudioPlay;
+  final Function(int, String) onAudioPlay;
   final Function(int)? addToFavorite;
   final bool isPlaying;
   final String? subTitle;
@@ -30,6 +35,11 @@ class SuraItem extends StatefulWidget {
 
 class _SuraItemState extends State<SuraItem> {
   bool _isFavorite = false;
+  double _downloadProgress = 0;
+  bool _isDownloading = false;
+  bool _isDownloaded = false;
+  CancelToken? _cancelToken;
+
   Future<void> _checkFavoriteStatus() async {
     final isFav = await SharedPreferenceHelper.isFavorite(widget.suraDetails);
     if (mounted) {
@@ -38,10 +48,19 @@ class _SuraItemState extends State<SuraItem> {
       });
     }
   }
+
   @override
   void initState() {
     super.initState();
     _checkFavoriteStatus();
+    _checkIfDownloaded();
+  }
+  @override
+  void didUpdateWidget(SuraItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.suraDetails.number != widget.suraDetails.number) {
+      _checkIfDownloaded(); // Check when widget updates with new sura
+    }
   }
   Future<void> _toggleFavorite() async {
     print("_isFavorite => $_isFavorite");
@@ -56,6 +75,204 @@ class _SuraItemState extends State<SuraItem> {
       });
     }
   }
+
+  Future<void> _checkIfDownloaded() async {
+    try{
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath =
+          '${directory.path}/سورة ${widget.suraDetails.arabicName} برواية ${widget.suraDetails.narrative}.mp3';
+      final file = File(filePath);
+      final exists = await file.exists();
+      if (mounted) {
+        setState(() {
+          _isDownloaded = exists;
+        });
+      }
+    }catch(e){
+      debugPrint('Error checking download status: $e');
+    }
+  }
+
+  Future<void> _playDownloadedAudio() async {
+    if (!_isDownloaded) return;
+    final directory = await getApplicationDocumentsDirectory();
+    final filePath = '${directory.path}/surah_${widget.suraDetails.number}.mp3';
+    AudioProvider audioProvider = Provider.of(context);
+    try {
+      await audioProvider.player.setFilePath(filePath);
+      await audioProvider.player.play();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error playing downloaded file')),
+      );
+    }
+  }
+
+  Future<void> _deleteDownloadedAudio() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final filePath = '${directory.path}/surah_${widget.suraDetails.number}.mp3';
+    final file = File(filePath);
+    if (await file.exists()) {
+      await file.delete();
+      if (mounted) {
+        setState(() {
+          _isDownloaded = false;
+        });
+      }
+    }
+  }
+  Future<void> _playAudio() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    final isOffline = connectivityResult == ConnectivityResult.none;
+
+    if (isOffline && _isDownloaded) {
+      await _playDownloadedAudio();
+    } else if (!isOffline) {
+      widget.onAudioPlay(
+          widget.suraDetails.number, widget.suraDetails.uniqueId);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('No internet connection and no downloaded audio')),
+      );
+    }
+  }
+
+  Future<bool> _requestStoragePermission() async {
+    if (Platform.isAndroid) {
+      if (await DeviceInfoPlugin()
+              .androidInfo
+              .then((info) => info.version.sdkInt) >=
+          33) {
+        var status = await Permission.audio.request();
+        return status.isGranted;
+      }
+    }
+    var status = await Permission.storage.request();
+    return status.isGranted;
+  }
+
+  Future<void> _downloadSurahAudio() async {
+    if (_isDownloading || _isDownloaded) return;
+    // if (_isDownloading) {
+    //   _cancelDownload();
+    //   return;
+    // }
+    // if (_isDownloaded) {
+    //   _showAlreadyDownloadedSnackbar();
+    //   return;
+    // }
+    final hasPermission = await _requestStoragePermission();
+    if (!hasPermission) {
+      _showPermissionDeniedSnackbar();
+      return;
+    }
+    setState(() {
+      _isDownloading = true;
+      _downloadProgress = 0;
+    });
+    try {
+      // _cancelToken = CancelToken();
+      final dio = Dio();
+      Directory directory = await getApplicationDocumentsDirectory();
+      // if (Platform.isAndroid) {
+      //   // Save to Downloads folder (visible in file manager)
+      //   directory = Directory('/storage/emulated/0/Download/QuranAudio');
+      //   if (!await directory.exists()) {
+      //     await directory.create(recursive: true);
+      //   }
+      // } else {
+      //   // For iOS, use documents directory (less accessible)
+      //   directory = await getApplicationDocumentsDirectory();
+      // }
+      String savePath = '';
+      if (widget.suraDetails.narrative != null) {
+        savePath =
+            '${directory.path}/سورة ${widget.suraDetails.arabicName} برواية ${widget.suraDetails.narrative}.mp3';
+      } else {
+        savePath = '${directory.path} ${widget.suraDetails.arabicName}.mp3';
+      }
+      await dio.download(
+        widget.suraDetails.audio, // Replace with your actual audio URL
+        savePath,
+        // cancelToken: _cancelToken,
+        onReceiveProgress: (received, total) {
+          if (total != -1 && mounted) {
+            setState(() {
+              _downloadProgress = received / total;
+            });
+          }
+        },
+      );
+      if (mounted) {
+        setState(() {
+          _isDownloading = false;
+          _isDownloaded = true;
+        });
+      }
+      _showDownloadCompleteSnackbar();
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isDownloading = false;
+        });
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Download failed: $e')),
+      );
+    } finally {
+      _cancelToken = null;
+    }
+  }
+
+  void _cancelDownload() {
+    _cancelToken?.cancel();
+    setState(() {
+      _isDownloading = false;
+      _downloadProgress = 0;
+    });
+  }
+
+  String _getAudioUrl() {
+    return widget.suraDetails.audio;
+  }
+
+  void _showDownloadCompleteSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Download completed!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _showDownloadErrorSnackbar(String error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Download failed: $error'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  void _showPermissionDeniedSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Storage permission required'),
+        backgroundColor: Colors.orange,
+      ),
+    );
+  }
+
+  void _showAlreadyDownloadedSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Surah already downloaded'),
+        backgroundColor: Colors.blue,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var pro = Provider.of<LangsProvider>(context);
@@ -129,19 +346,26 @@ class _SuraItemState extends State<SuraItem> {
               ],
             ),
             const Spacer(),
-            Container(
-              width: 35,
-              height: 35,
-              decoration: BoxDecoration(
-                  color: const Color(0xffF5F4F9),
-                  borderRadius: BorderRadius.circular(25)),
-              child: IconButton(
-                icon: const Icon(Icons.cloud_download_outlined),
-                iconSize: 21,
-                onPressed: () {},
-                padding: EdgeInsets.zero,
+            if (!_isDownloaded)
+              Container(
+                width: 35,
+                height: 35,
+                decoration: BoxDecoration(
+                    color: const Color(0xffF5F4F9),
+                    borderRadius: BorderRadius.circular(25)),
+                child: _isDownloading
+                    ? CircularProgressIndicator(
+                        value: _downloadProgress,
+                        strokeWidth: 2,
+                        color: Color(0xff00514A),
+                      )
+                    : IconButton(
+                        icon: Icon(Icons.cloud_download_outlined),
+                        iconSize: 21,
+                        onPressed: _downloadSurahAudio,
+                        padding: EdgeInsets.zero,
+                      ),
               ),
-            ),
             const SizedBox(width: 10),
             Container(
               width: 35,
@@ -150,12 +374,10 @@ class _SuraItemState extends State<SuraItem> {
                   color: const Color(0xffF5F4F9),
                   borderRadius: BorderRadius.circular(25)),
               child: IconButton(
-                icon: Icon(widget.isPlaying ? Icons.pause : Icons.play_arrow_rounded),
+                icon: Icon(
+                    widget.isPlaying ? Icons.pause : Icons.play_arrow_rounded),
                 iconSize: 27,
-                onPressed: () {
-                  // audioProvider.changeIsRadioPlaying(false);
-                  widget.onAudioPlay(widget.suraDetails.number);
-                },
+                onPressed: _playAudio,
                 padding: EdgeInsets.zero,
               ),
             ),
@@ -169,10 +391,10 @@ class _SuraItemState extends State<SuraItem> {
               child: IconButton(
                 icon: Icon(
                   _isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: _isFavorite ? Colors.red : null,
+                  color: _isFavorite ? Color(0xff00514A) : null,
                 ),
                 iconSize: 21,
-                onPressed:_toggleFavorite,
+                onPressed: _toggleFavorite,
                 padding: EdgeInsets.zero,
               ),
             ),

@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               crossAxisCount: crossAxisCount,
                               mainAxisSpacing: 25,
                               crossAxisSpacing: 25,
-                              childAspectRatio:1.18
+                              childAspectRatio:1.3
                           ),
                           itemBuilder: (context, index) {
                             final tap = taps[index];

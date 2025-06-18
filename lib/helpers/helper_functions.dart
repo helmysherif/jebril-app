@@ -1,5 +1,6 @@
 import '../Sura.dart';
 import '../constants/sura_names.dart';
+import '../models/Subcategories.dart';
 
 class HelperFunctions
 {
@@ -13,7 +14,7 @@ class HelperFunctions
         .whereType<String>() // Filters out null values
         .toList();
   }
-  static List<Surah> generateSurahAudioUrls(String type , List<String> narratives , String id) {
+  static List<Surah> generateSurahAudioUrls(String type , List<String> narratives , Subcategories cat) {
     List<Surah> surahs = [];
     if(narratives.isNotEmpty){
       for(int i = 0;i < narratives.length;i++){
@@ -28,10 +29,11 @@ class HelperFunctions
         );
         surahs.add(Surah(
           audio:
-          'https://radiojebril.net/sheikh_jebril_audios/sounds/$type/${id}/${narratives[i]}.mp3',
+          'https://radiojebril.net/sheikh_jebril_audios/sounds/$type/${cat.id}/${narratives[i]}.mp3',
           englishName: suraData["englishName"],
           arabicName: suraData["arabicName"],
           number: suraData["number"],
+          narrative: cat.arTitle
         ));
       }
     }

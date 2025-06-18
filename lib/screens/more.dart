@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 // import 'package:jebril_app/providers/Audio_provider.dart';
@@ -52,7 +53,10 @@ class More extends StatelessWidget {
                 ),
                 child:Row(
                   children: [
-                    Image.asset("assets/images/social-links.png"),
+                    SvgPicture.asset("assets/images/hand.svg" , height:45),
+                    // Image.asset("assets/images/social-links.png" ,width: 45,
+                    //   height: 45, // Add fixed height to maintain aspect ratio
+                    //   fit: BoxFit.contain,),
                     const SizedBox(width:15),
                     Text(
                       localizations.socialMedia,
@@ -103,7 +107,10 @@ class More extends StatelessWidget {
                 ),
                 child:Row(
                   children: [
-                    Image.asset("assets/images/about.png"),
+                    SvgPicture.asset("assets/images/Objects.svg" , height:45),
+                    // Image.asset("assets/images/about.png" , width: 45,
+                    //   height: 45, // Add fixed height to maintain aspect ratio
+                    //   fit: BoxFit.contain,),
                     const SizedBox(width:15),
                     Text(
                       localizations.info,

@@ -224,7 +224,7 @@ class _PrayersState extends State<Prayers> with SingleTickerProviderStateMixin {
                       return audiosData.length > 0 ? SuraItem(
                         suraDetails: audiosData[index],
                         isPrayer: true,
-                        onAudioPlay: (int suraNumber) {
+                        onAudioPlay: (int suraNumber , String uniqueName) {
                           setState(() {
                             if (currentlyPlayingIndex == suraNumber) {
                               currentlyPlayingIndex = null;

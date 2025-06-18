@@ -11,7 +11,7 @@ class AudioProvider extends ChangeNotifier {
     englishName: "",
     number: 0,
   );
-
+  bool _isRadioPlaying = false;
   bool get isLoading => _isLoading;
   bool get isRadioPlaying => player.playing;
 
@@ -47,7 +47,16 @@ class AudioProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
+  Future<void> playLocalFile(String filePath) async {
+    try {
+      await player.setFilePath(filePath);
+      await player.play();
+      _isRadioPlaying = true;
+      notifyListeners();
+    } catch (e) {
+      print('Error playing local file: $e');
+    }
+  }
   Future<void> pauseRadio() async {
     if (!isRadioPlaying) return;
 
