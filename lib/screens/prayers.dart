@@ -272,7 +272,7 @@ class _PrayersState extends State<Prayers> with SingleTickerProviderStateMixin {
                   });
                 }
               },
-              onTrackChanged: (int newIndex , int suraNumber) {
+              onTrackChanged: (int newIndex , int suraNumber , String uniqueName) {
                 if(mounted){
                   setState(() {
                     currentlyPlayingIndex = suraNumber;

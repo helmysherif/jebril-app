@@ -117,7 +117,6 @@ class _QuranRadioWidgetState extends State<RadioWidget>
     player.positionStream.listen(null).cancel();
     player.durationStream.listen(null).cancel();
     player.playerStateStream.listen(null).cancel();
-
     player.positionStream.listen((position) {
       if (mounted) setState(() => position = position);
     });
@@ -157,8 +156,8 @@ class _QuranRadioWidgetState extends State<RadioWidget>
           // ),
           child: Image.asset(
             widget.inNotHomeScreen ? "assets/images/play2.jpg" : "assets/images/radio_background.png",
-            fit: BoxFit.cover,
-            height: 190,
+            fit: BoxFit.fill,
+            height: widget.inNotHomeScreen ? 160 : 190,
           ),
         ),
         Container(
@@ -195,7 +194,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
               }
               return Container(
                 width: widget.inNotHomeScreen ? screenWidth : screenWidth * 0.9,
-                height: widget.inNotHomeScreen ? 190 : calculateHeight(),
+                height: widget.inNotHomeScreen ? 160 : calculateHeight() * 0.95,
                 margin: EdgeInsets.symmetric(
                     horizontal: !isPortrait ? screenWidth * 0.04 : 0,
                     vertical: !isPortrait ? screenHeight * 0.07 : 0),
@@ -227,30 +226,30 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                                 textScaler: const TextScaler.linear(1.0)
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(top:10),
-                            child: Row(
-                              children: [
-                                CustomIconButton(
-                                  icon: Icons.access_time_rounded,
-                                  label: "مؤقت",
-                                  onPressed:(){},
-                                ),
-                                const SizedBox(width: 10),
-                                CustomIconButton(
-                                  icon: Icons.share,
-                                  label: "مشاركة",
-                                  onPressed:(){},
-                                ),
-                                const SizedBox(width: 10),
-                                CustomIconButton(
-                                  icon: Icons.arrow_forward_ios,
-                                  label: "الراديو",
-                                  onPressed:(){},
-                                )
-                              ],
-                            ),
-                          )
+                          // Padding(
+                          //   padding: const EdgeInsets.only(top:10),
+                          //   child: Row(
+                          //     children: [
+                          //       CustomIconButton(
+                          //         icon: Icons.access_time_rounded,
+                          //         label: "مؤقت",
+                          //         onPressed:(){},
+                          //       ),
+                          //       const SizedBox(width: 10),
+                          //       CustomIconButton(
+                          //         icon: Icons.share,
+                          //         label: "مشاركة",
+                          //         onPressed:(){},
+                          //       ),
+                          //       const SizedBox(width: 10),
+                          //       CustomIconButton(
+                          //         icon: Icons.arrow_forward_ios,
+                          //         label: "الراديو",
+                          //         onPressed:(){},
+                          //       )
+                          //     ],
+                          //   ),
+                          // )
                         ],
                       ),
                       Column(

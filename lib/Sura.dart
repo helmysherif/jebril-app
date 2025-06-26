@@ -4,7 +4,7 @@ class Surah {
   final String arabicName;
   final int number;
   final String? narrative;
-  final bool isDownloaded;
+  bool isDownloaded;
   String get uniqueId => '$number-${narrative.hashCode}';
   Surah({
     required this.audio,

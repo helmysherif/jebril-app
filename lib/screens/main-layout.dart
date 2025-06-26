@@ -69,6 +69,12 @@ class _MainLayoutState extends State<MainLayout> {
     AudioResponse narrativeData = quranDataProvider.getFilteredQuranData("quran_narratives", 0);
     AudioResponse prayersData = quranDataProvider.getFilteredQuranData("prayers", 0);
     AudioResponse tarawihData = quranDataProvider.getFilteredQuranData("taraweeh", 0);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.type == "quran" && audioProvider.isRadioPlaying) {
+        audioProvider.pauseRadio();
+        audioProvider.changeIsRadio(false);
+      }
+    });
     if(langsProvider.language == "en"){
       if(widget.type == "quran"){
         appBarTitle = holyQuranData.enTitle;
@@ -107,14 +113,15 @@ class _MainLayoutState extends State<MainLayout> {
         appBarTitle = localizations.favorite;
       }
     }
-    return isLoading ? Scaffold(
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.85,
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
-      ),
-    ) :  Scaffold(
+    // isLoading ? Scaffold(
+    //   body: SizedBox(
+    //     height: MediaQuery.of(context).size.height * 0.85,
+    //     child: const Center(
+    //       child: CircularProgressIndicator(),
+    //     ),
+    //   ),
+    // ) :
+    return Scaffold(
       backgroundColor: const Color(0xfff5f5f5),
       appBar: widget.isHomeScreen || widget.hideAppBar
           ? null
@@ -146,46 +153,46 @@ class _MainLayoutState extends State<MainLayout> {
                       const SizedBox(width: 10),
                     ],
                   ),
-                  DropdownButton<String>(
-                    value: langsProvider.language == 'en' ? 'English' : 'عربي',
-                    elevation: 0,
-                    underline: const SizedBox.shrink(),
-                    icon: const SizedBox.shrink(),
-                    iconSize: 30,
-                    items:
-                        languages.map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value , textScaler: const TextScaler.linear(1.0)),
-                      );
-                    }).toList(),
-                    onChanged: (String? lang) {
-                      if (lang != null) {
-                        if (lang == 'English') {
-                          langsProvider.changeLanguage("en");
-                        } else {
-                          langsProvider.changeLanguage("ar");
-                        }
-                      }
-                    },
-                    selectedItemBuilder: (BuildContext context) {
-                      return languages.map((String value) {
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(width: 4),
-                            Text(value,
-                                style: GoogleFonts.cairo(
-                                    fontSize: 18,
-                                    color: const Color(0xff484848),
-                                    fontWeight: FontWeight.w600),
-                                textScaler: const TextScaler.linear(1.0)),
-                            const Icon(Icons.keyboard_arrow_down),
-                          ],
-                        );
-                      }).toList();
-                    },
-                  ),
+                  // DropdownButton<String>(
+                  //   value: langsProvider.language == 'en' ? 'English' : 'عربي',
+                  //   elevation: 0,
+                  //   underline: const SizedBox.shrink(),
+                  //   icon: const SizedBox.shrink(),
+                  //   iconSize: 30,
+                  //   items:
+                  //       languages.map<DropdownMenuItem<String>>((String value) {
+                  //     return DropdownMenuItem<String>(
+                  //       value: value,
+                  //       child: Text(value , textScaler: const TextScaler.linear(1.0)),
+                  //     );
+                  //   }).toList(),
+                  //   onChanged: (String? lang) {
+                  //     if (lang != null) {
+                  //       if (lang == 'English') {
+                  //         langsProvider.changeLanguage("en");
+                  //       } else {
+                  //         langsProvider.changeLanguage("ar");
+                  //       }
+                  //     }
+                  //   },
+                  //   selectedItemBuilder: (BuildContext context) {
+                  //     return languages.map((String value) {
+                  //       return Row(
+                  //         mainAxisSize: MainAxisSize.min,
+                  //         children: [
+                  //           const SizedBox(width: 4),
+                  //           Text(value,
+                  //               style: GoogleFonts.cairo(
+                  //                   fontSize: 18,
+                  //                   color: const Color(0xff484848),
+                  //                   fontWeight: FontWeight.w600),
+                  //               textScaler: const TextScaler.linear(1.0)),
+                  //           const Icon(Icons.keyboard_arrow_down),
+                  //         ],
+                  //       );
+                  //     }).toList();
+                  //   },
+                  // ),
                 ],
               ),
             ),
@@ -193,7 +200,7 @@ class _MainLayoutState extends State<MainLayout> {
            if (widget.isHomeScreen)
              Padding(
                 padding: const EdgeInsets.only(
-                    left: 20, right: 20, bottom: 30, top: 20),
+                    left: 20, right: 20, bottom: 25, top: 20),
                 child: RadioWidget(type: "radio")),
           Expanded(child: widget.child),
           if (!widget.isHomeScreen &&

@@ -120,7 +120,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                     });
                   }
                 },
-                onTrackChanged: (int newIndex , int suraNumber) {
+                onTrackChanged: (int newIndex , int suraNumber , String uniqueName) {
                   if(mounted){
                     setState(() {
                       currentlyPlayingIndex = suraNumber;

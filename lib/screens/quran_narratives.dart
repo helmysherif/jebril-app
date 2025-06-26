@@ -227,7 +227,7 @@ class _QuranNarrativesState extends State<QuranNarratives> {
                     });
                   }
                 },
-                onTrackChanged: (int newIndex , int suraNumber) {
+                onTrackChanged: (int newIndex , int suraNumber , String uniqueName) {
                   if(mounted){
                     setState(() {
                       currentlyPlayingIndex = suraNumber;

@@ -99,79 +99,75 @@ class _HomeScreenState extends State<HomeScreen> {
         body: SingleChildScrollView(
           child:Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 5),
-                child: Column(
-                  children: [
-                    // Padding(
-                    //   padding: const EdgeInsets.only(left:20,right: 20,bottom: 30,top:20),
-                    //   child: RadioWidget(suraAudios: radioAudio, type: "radio"),
-                    // ),
-                    // QuranRadioWidget(suraAudios: surahAudios, type: "quran"),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final width = constraints.maxWidth;
-                        int crossAxisCount;
-                        if (width > 1200) {
-                          crossAxisCount = 6; // For very large screens
-                        } else if (width > 800) {
-                          crossAxisCount = 4; // For tablets/desktops
-                        } else if (width > 600) {
-                          crossAxisCount = 3; // For larger phones in landscape
-                        } else {
-                          crossAxisCount = 2; // Default for phones in portrait
-                        }
-                        // Ensure we don't show more columns than we have items
-                        crossAxisCount =
-                        crossAxisCount > 6 ? 6 : crossAxisCount;
-                        return GridView.builder(
-                          padding: const EdgeInsets.only(
-                              left: 20, right: 20, bottom: 30),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: crossAxisCount,
-                              mainAxisSpacing: 25,
-                              crossAxisSpacing: 25,
-                              childAspectRatio:1.3
-                          ),
-                          itemBuilder: (context, index) {
-                            final tap = taps[index];
-                            return CardItem(
-                                label: tap["title"]!,
-                                image: tap["image"]!,
-                                onPressed: (int id) {
-                                  if(index == 0){
-                                    final audioProvider = Provider.of<AudioProvider>(context, listen: false);
-                                    // audioProvider.prepareForNavigation();
-                                    Navigator.of(context).pushNamed(QuranScreen.routeName);
-                                  }
-                                  else if(index == 1){
-                                    Navigator.of(context).pushNamed(QuranNarratives.routeName);
-                                  }
-                                  else if(index == 2){
-                                    Navigator.of(context).pushNamed(Tarawih.routeName);
-                                  }
-                                  else if(index == 3){
-                                    Navigator.of(context).pushNamed(Prayers.routeName);
-                                  }
-                                  else if(index == 4){
-                                    Navigator.of(context).pushNamed(FavoriteScreen.routeName);
-                                  }
-                                  else if(index == 5){
-                                    Navigator.of(context).pushNamed(More.routeName);
-                                  }
-                                },
-                                id: index
-                            );
-                          },
-                          itemCount: 6,
-                          shrinkWrap: true,
-                          physics: const ClampingScrollPhysics(),
-                        );
-                      },
-                    )
-                  ],
-                ),
-                //   child: QuranRadioWidget()
+              Column(
+                children: [
+                  // Padding(
+                  //   padding: const EdgeInsets.only(left:20,right: 20,bottom: 30,top:20),
+                  //   child: RadioWidget(suraAudios: radioAudio, type: "radio"),
+                  // ),
+                  // QuranRadioWidget(suraAudios: surahAudios, type: "quran"),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      int crossAxisCount;
+                      if (width > 1200) {
+                        crossAxisCount = 6; // For very large screens
+                      } else if (width > 800) {
+                        crossAxisCount = 4; // For tablets/desktops
+                      } else if (width > 600) {
+                        crossAxisCount = 3; // For larger phones in landscape
+                      } else {
+                        crossAxisCount = 2; // Default for phones in portrait
+                      }
+                      // Ensure we don't show more columns than we have items
+                      crossAxisCount =
+                      crossAxisCount > 6 ? 6 : crossAxisCount;
+                      return GridView.builder(
+                        padding: const EdgeInsets.only(
+                            left: 20, right: 20, bottom: 30),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            mainAxisSpacing: 25,
+                            crossAxisSpacing: 25,
+                            childAspectRatio:1.3
+                        ),
+                        itemBuilder: (context, index) {
+                          final tap = taps[index];
+                          return CardItem(
+                              label: tap["title"]!,
+                              image: tap["image"]!,
+                              onPressed: (int id) {
+                                if(index == 0){
+                                  final audioProvider = Provider.of<AudioProvider>(context, listen: false);
+                                  // audioProvider.prepareForNavigation();
+                                  Navigator.of(context).pushNamed(QuranScreen.routeName);
+                                }
+                                else if(index == 1){
+                                  Navigator.of(context).pushNamed(QuranNarratives.routeName);
+                                }
+                                else if(index == 2){
+                                  Navigator.of(context).pushNamed(Tarawih.routeName);
+                                }
+                                else if(index == 3){
+                                  Navigator.of(context).pushNamed(Prayers.routeName);
+                                }
+                                else if(index == 4){
+                                  Navigator.of(context).pushNamed(FavoriteScreen.routeName);
+                                }
+                                else if(index == 5){
+                                  Navigator.of(context).pushNamed(More.routeName);
+                                }
+                              },
+                              id: index
+                          );
+                        },
+                        itemCount: 6,
+                        shrinkWrap: true,
+                        physics: const ClampingScrollPhysics(),
+                      );
+                    },
+                  )
+                ],
               ),
             ],
           ),

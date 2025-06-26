@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jebril_app/Sura.dart';
 import 'package:jebril_app/constants/sura_names.dart';
+import 'package:jebril_app/helpers/helper_functions.dart';
 import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:jebril_app/providers/langs_provider.dart';
 import 'package:jebril_app/providers/quran_data_provider.dart';
@@ -45,11 +47,82 @@ class _QuranScreenState extends State<QuranScreen> {
   List<Subcategories> holyQuranData = [];
   bool isHolyQuranChanged = false;
   late AudioResponse wholeData;
+  List<Surah> _offlineSurahs = [];
   final TextEditingController _searchController = TextEditingController();
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  bool isOffline = false;
+  String? suraUniqueName = "";
+  Surah? clickedSura;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    selectedQuran = [];
+    wholeData =
+        AudioResponse(arTitle: '', enTitle: '', subcategories: [], id: '');
+    // getHollyQuranData(0);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeData();
+    });
+    _initConnectivity();
+  }
 
+  Future<void> _initConnectivity() async {
+    // Check initial status
+    final initialStatus = await Connectivity().checkConnectivity();
+    _updateConnectionStatus(initialStatus);
+
+    // Listen for ongoing changes
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen(_updateConnectionStatus);
+  }
+
+  void _updateConnectionStatus(List<ConnectivityResult> results) {
+    // Handle empty result list
+    if (results.isEmpty) {
+      setState(() {
+        isOffline = true;
+      });
+      _loadOfflineSurahs();
+      return;
+    }
+    final isNowOffline = !results.any((result) =>
+    result != ConnectivityResult.none);
+    if (isNowOffline != isOffline) {
+      setState(() {
+        isOffline = isNowOffline;
+        print("Network status changed. Offline: $isOffline");
+      });
+      print("isOffline => $isOffline");
+      if (isNowOffline) {
+        _loadOfflineSurahs();
+      }
+    }
+  }
+  Future<void> _loadOfflineSurahs() async {
+    try {
+      print("Loading offline surahs...");
+      final downloaded = await HelperFunctions.getDownloadedSurahs();
+      print("Downloaded surahs count: ${downloaded.length}");
+
+      if (mounted) {
+        setState(() {
+          _offlineSurahs = downloaded;
+          print("Offline surahs updated: ${_offlineSurahs.length}");
+        });
+      }
+    } catch (e) {
+      print("Error loading offline surahs: $e");
+      if (mounted) {
+        setState(() {
+          _offlineSurahs = [];
+        });
+      }
+    }
+  }
   @override
   void dispose() {
     _searchController.dispose();
+    _connectivitySubscription?.cancel();
     // final suraDetailsProvider = Provider.of<SuraDetailsProvider>(context, listen: false);
     // suraDetailsProvider.reset();
     super.dispose();
@@ -132,18 +205,7 @@ class _QuranScreenState extends State<QuranScreen> {
     }
   }
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    selectedQuran = [];
-    wholeData =
-        AudioResponse(arTitle: '', enTitle: '', subcategories: [], id: '');
-    // getHollyQuranData(0);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeData();
-    });
-  }
+
 
   Future<void> _initializeData() async {
     await getHollyQuranData(0);
@@ -267,88 +329,39 @@ class _QuranScreenState extends State<QuranScreen> {
                         child: CircularProgressIndicator(),
                       )
                     ],
-                  ) :
-                  ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    itemBuilder: (context, index) {
-                      return SuraItem(
-                        suraDetails: getFilteredSurahs(filteredName)[index],
-                        onAudioPlay: (int suraNumber, String uniqueName) {
-                          setState(() {
-                            if (currentlyPlayingIndex == suraNumber) {
-                              // Toggle playback if same sura is clicked
-                              currentlyPlayingIndex = null;
-                              isPlaying = false;
-                              // showRadio = false;
-                            } else {
-                              // Stop radio if playing
-                              if (audioProvider2.isRadioPlaying) {
-                                audioProvider2.pauseRadio();
-                                audioProvider2.wasRadioPlaying = false;
-                              }
-                              // Start playing selected sura
-                              currentlyPlayingIndex = suraNumber;
-                              pro.changeIndex(suraNumber);
-                              pro.changeSuraNumber(suraNumber);
-                              showRadio = true;
-                              isPlaying = true;
-                            }
-                          });
-                        },
-                        addToFavorite: (int index) {
-                          print("index => $index");
-                        },
-                        isPlaying: currentlyPlayingIndex == getFilteredSurahs(
-                            filteredName)[index].number && isPlaying &&
-                            !audioProvider2.isRadioPlaying,
-                      );
-                    },
-                    itemCount: getFilteredSurahs(filteredName).length,
-                  )
-                  //     : Center(
-                  //   child: Text(
-                  //       AppLocalizations.of(context)!.emptySurasData,
-                  //       style: GoogleFonts.cairo(
-                  //           fontSize: 25,
-                  //           color: Colors.black
-                  //       ),
-                  //       textScaler: const TextScaler.linear(1.0)
-                  //   ),
-                  // ),
+                  ) : _buildContent(audioProvider2 , pro)
                 ),
-
-                // Audio player - fixed height (no Expanded)
-                // if(audioProvider.isRadioPlaying && !showRadio)
-                //   RadioWidget(suraAudios: audioProvider.radioAudio, type: "radio"),
               ],
             ),
           ),
-          if (showRadio && !audioProvider2.isRadioPlaying)
+          if (showRadio)
             SizedBox(
               height: 180,
               child: SuraAudio(
-                suraAudios: surahAudios,
-                suraNumber: pro.index,
+                suraAudios: isOffline
+                    ? _offlineSurahs
+                    : surahAudios,
+                suraNumber: pro.suraNumber,
                 suraIndex: currentlyPlayingIndex ?? 0,
                 isPlaying: isPlaying,
-                rewayaName: selectedQuran.isNotEmpty
-                    ? selectedQuran[0].arTitle
-                    : "",
-                isRadioPlaying: audioProvider2.isRadioPlaying,
-                radioUrl: audioProvider2.isRadioPlaying ? audioProvider2
-                    .radioAudio : null,
+                isOffline: isOffline,
+                uniqueId: suraUniqueName,
+                rewayaName:selectedQuran.isNotEmpty ? selectedQuran[0].arTitle : "",
+                isRadioPlaying: false,
+                radioUrl: null,
                 onPause: (bool stat) {
                   if (mounted) {
                     setState(() {
                       isPlaying = stat;
-                      // currentlyPlayingIndex = pro.suraNumber;
                     });
                   }
                 },
-                onTrackChanged: (int newIndex, int suraNumber) {
+                onTrackChanged: (int newIndex, int suraNumber , String uniqueName) {
                   if (mounted) {
                     setState(() {
-                      currentlyPlayingIndex = suraNumber;
+                      isPlaying = true;
+                      suraUniqueName = uniqueName;
+                      currentlyPlayingIndex = newIndex;
                       pro.changeIndex(newIndex);
                     });
                   }
@@ -358,5 +371,95 @@ class _QuranScreenState extends State<QuranScreen> {
         ],
       ),
     );
+  }
+  Widget _buildContent(AudioProvider audioProvider2, SuraDetailsProvider pro) {
+    if (isOffline) {
+      if (_offlineSurahs.isEmpty) {
+        return Center(
+          child: Text(
+            'No downloaded surahs available offline',
+            style: TextStyle(fontSize: 18),
+          ),
+        );
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        itemCount: _offlineSurahs.length,
+        itemBuilder: (context, index) {
+          final sura = _offlineSurahs[index];
+          currentlyPlayingIndex = index;
+          // suraUniqueName = sura.uniqueId;
+          return SuraItem(
+            suraDetails: sura,
+              isOffline:isOffline,
+            onAudioPlay: (int suraNumber, String uniqueName) {
+              setState(() {
+                if (suraUniqueName == uniqueName) {
+                  isPlaying = !isPlaying;
+                } else {
+                  suraUniqueName = uniqueName;
+                  isPlaying = true;
+                  currentlyPlayingIndex = suraNumber;
+                }
+
+                if (audioProvider2.isRadioPlaying) {
+                  audioProvider2.changeIsRadio(false);
+                }
+
+                pro.changeSuraNumber(suraNumber);
+                showRadio = true;
+              });
+            },
+            addToFavorite: (int index) {
+              print("index => $index");
+            },
+            isPlaying: suraUniqueName == sura.uniqueId &&
+                isPlaying &&
+                !audioProvider2.isRadioPlaying,
+          );
+        },
+      );
+    } else {
+      final filtered = getFilteredSurahs(filteredName);
+      if (filtered.isEmpty) {
+        return Center(
+          child: Text('No surahs found'),
+        );
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        itemCount: filtered.length,
+        itemBuilder: (context, index) {
+          final sura = filtered[index];
+          return SuraItem(
+            suraDetails: sura,
+            onAudioPlay: (int suraNumber, String uniqueName) {
+              setState(() {
+                if (suraUniqueName == uniqueName) {
+                  isPlaying = !isPlaying;
+                } else {
+                  suraUniqueName = uniqueName;
+                  isPlaying = true;
+                  currentlyPlayingIndex = suraNumber;
+                }
+
+                if (audioProvider2.isRadioPlaying) {
+                  audioProvider2.changeIsRadio(false);
+                }
+
+                pro.changeSuraNumber(suraNumber);
+                showRadio = true;
+              });
+            },
+            addToFavorite: (int index) {
+              print("index => $index");
+            },
+            isPlaying: suraUniqueName == sura.uniqueId &&
+                isPlaying &&
+                !audioProvider2.isRadioPlaying,
+          );
+        },
+      );
+    }
   }
 }

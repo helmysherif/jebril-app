@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:jebril_app/Sura.dart';
 import 'package:jebril_app/helpers/shared_prefs_helper.dart';
 import 'package:jebril_app/providers/Audio_provider.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../providers/langs_provider.dart';
@@ -19,7 +20,7 @@ class SuraItem extends StatefulWidget {
   final bool isPlaying;
   final String? subTitle;
   final bool isPrayer;
-
+  final bool isOffline;
   const SuraItem(
       {super.key,
       this.isPrayer = false,
@@ -27,6 +28,7 @@ class SuraItem extends StatefulWidget {
       required this.suraDetails,
       required this.onAudioPlay,
       this.subTitle,
+        this.isOffline = false,
       this.addToFavorite});
 
   @override
@@ -39,7 +41,7 @@ class _SuraItemState extends State<SuraItem> {
   bool _isDownloading = false;
   bool _isDownloaded = false;
   CancelToken? _cancelToken;
-
+  final AudioPlayer player = AudioPlayer();
   Future<void> _checkFavoriteStatus() async {
     final isFav = await SharedPreferenceHelper.isFavorite(widget.suraDetails);
     if (mounted) {
@@ -48,7 +50,11 @@ class _SuraItemState extends State<SuraItem> {
       });
     }
   }
-
+  @override
+  void dispose() {
+    player.dispose();
+    super.dispose();
+  }
   @override
   void initState() {
     super.initState();
@@ -77,10 +83,14 @@ class _SuraItemState extends State<SuraItem> {
   }
 
   Future<void> _checkIfDownloaded() async {
-    try{
+    try {
       final directory = await getApplicationDocumentsDirectory();
-      final filePath =
-          '${directory.path}/سورة ${widget.suraDetails.arabicName} برواية ${widget.suraDetails.narrative}.mp3';
+      String filePath;
+      if (widget.suraDetails.narrative != null) {
+        filePath = '${directory.path}/سورة ${widget.suraDetails.arabicName} برواية ${widget.suraDetails.narrative}.mp3';
+      } else {
+        filePath = '${directory.path}/سورة ${widget.suraDetails.arabicName}.mp3';
+      }
       final file = File(filePath);
       final exists = await file.exists();
       if (mounted) {
@@ -88,24 +98,29 @@ class _SuraItemState extends State<SuraItem> {
           _isDownloaded = exists;
         });
       }
-    }catch(e){
+    } catch(e) {
       debugPrint('Error checking download status: $e');
     }
   }
 
   Future<void> _playDownloadedAudio() async {
-    if (!_isDownloaded) return;
     final directory = await getApplicationDocumentsDirectory();
-    final filePath = '${directory.path}/surah_${widget.suraDetails.number}.mp3';
-    AudioProvider audioProvider = Provider.of(context);
+    String filePath;
+
+    if (widget.suraDetails.narrative != null) {
+      filePath = '${directory.path}/سورة ${widget.suraDetails.arabicName} برواية ${widget.suraDetails.narrative}.mp3';
+    } else {
+      filePath = '${directory.path}/سورة ${widget.suraDetails.arabicName}.mp3';
+    }
+
     try {
-      await audioProvider.player.setFilePath(filePath);
-      await audioProvider.player.play();
+      widget.onAudioPlay(widget.suraDetails.number, widget.suraDetails.uniqueId);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error playing downloaded file')),
+        SnackBar(content: Text('Error playing downloaded file: $e')),
       );
     }
+
   }
 
   Future<void> _deleteDownloadedAudio() async {
@@ -122,19 +137,17 @@ class _SuraItemState extends State<SuraItem> {
     }
   }
   Future<void> _playAudio() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    final isOffline = connectivityResult == ConnectivityResult.none;
-
-    if (isOffline && _isDownloaded) {
+    if (_isDownloaded) {
       await _playDownloadedAudio();
-    } else if (!isOffline) {
-      widget.onAudioPlay(
-          widget.suraDetails.number, widget.suraDetails.uniqueId);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('No internet connection and no downloaded audio')),
-      );
+      final connectivityResult = await Connectivity().checkConnectivity();
+      if (connectivityResult == ConnectivityResult.none) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No internet connection available')),
+        );
+        return;
+      }
+      widget.onAudioPlay(widget.suraDetails.number, widget.suraDetails.uniqueId);
     }
   }
 
@@ -208,6 +221,7 @@ class _SuraItemState extends State<SuraItem> {
         setState(() {
           _isDownloading = false;
           _isDownloaded = true;
+          widget.suraDetails.isDownloaded = true;
         });
       }
       _showDownloadCompleteSnackbar();
@@ -377,7 +391,42 @@ class _SuraItemState extends State<SuraItem> {
                 icon: Icon(
                     widget.isPlaying ? Icons.pause : Icons.play_arrow_rounded),
                 iconSize: 27,
-                onPressed: _playAudio,
+                onPressed: (){
+                  audioProvider.wasRadioPlaying = false;
+                  audioProvider.changeIsRadio(false);
+                  widget.onAudioPlay(widget.suraDetails.number, widget.suraDetails.uniqueId);
+                  // final audioProvider = Provider.of<AudioProvider>(context, listen: false);
+                  //
+                  // // Stop radio if playing
+                  // if (audioProvider.isRadioPlaying) {
+                  //   await audioProvider.pauseRadio();
+                  //   audioProvider.wasRadioPlaying = false;
+                  //   audioProvider.changeIsRadio(false);
+                  // }
+                  //
+                  // if (_isDownloaded) {
+                  //   try {
+                  //     // Play downloaded file
+                  //     final directory = await getApplicationDocumentsDirectory();
+                  //     String filePath;
+                  //
+                  //     if (widget.suraDetails.narrative != null) {
+                  //       filePath = '${directory.path}/سورة ${widget.suraDetails.arabicName} برواية ${widget.suraDetails.narrative}.mp3';
+                  //     } else {
+                  //       filePath = '${directory.path}/سورة ${widget.suraDetails.arabicName}.mp3';
+                  //     }
+                  //
+                  //     widget.onAudioPlay(widget.suraDetails.number, widget.suraDetails.uniqueId);
+                  //   } catch (e) {
+                  //     ScaffoldMessenger.of(context).showSnackBar(
+                  //       SnackBar(content: Text('Error playing downloaded file: $e')),
+                  //     );
+                  //   }
+                  // } else {
+                  //   // Play online audio
+                  //   widget.onAudioPlay(widget.suraDetails.number, widget.suraDetails.uniqueId);
+                  // }
+                },
                 padding: EdgeInsets.zero,
               ),
             ),

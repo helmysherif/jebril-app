@@ -17,7 +17,7 @@ class CardItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal:10 , vertical:0),
         decoration: BoxDecoration(
           color:Colors.white,
-          borderRadius:BorderRadius.circular(15),
+          borderRadius:BorderRadius.circular(10),
           boxShadow:const [
             BoxShadow(
               color: Colors.black12,

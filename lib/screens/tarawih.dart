@@ -223,7 +223,7 @@ class _TarawihState extends State<Tarawih> {
                     });
                   }
                 },
-                onTrackChanged: (int newIndex , int suraNumber) {
+                onTrackChanged: (int newIndex , int suraNumber , String uniqueName) {
                   if(mounted){
                     setState(() {
                       currentlyPlayingIndex = suraNumber;
