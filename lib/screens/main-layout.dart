@@ -53,6 +53,7 @@ class _MainLayoutState extends State<MainLayout> {
       }
     }
   }
+
   @override
   void initState() {
     super.initState();
@@ -62,7 +63,7 @@ class _MainLayoutState extends State<MainLayout> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
     LangsProvider langsProvider = Provider.of(context);
-    final List<String> languages = ['English', 'عربي'];
+    // final List<String> languages = ['English', 'عربي'];
     final audioProvider = Provider.of<AudioProvider>(context);
     final quranDataProvider = Provider.of<QuranDataProvider>(context, listen: false);
     AudioResponse holyQuranData = quranDataProvider.getFilteredQuranData("holy_quran", 0);
@@ -71,7 +72,7 @@ class _MainLayoutState extends State<MainLayout> {
     AudioResponse tarawihData = quranDataProvider.getFilteredQuranData("taraweeh", 0);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.type == "quran" && audioProvider.isRadioPlaying) {
-        audioProvider.pauseRadio();
+        // audioProvider.pauseRadio();
         audioProvider.changeIsRadio(false);
       }
     });

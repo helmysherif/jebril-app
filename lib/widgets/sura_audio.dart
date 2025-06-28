@@ -472,7 +472,7 @@ class _SuraAudioState extends State<SuraAudio> {
     bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     return Container(
         width: double.infinity,
-        height: 180,
+        height: 160,
         padding:const EdgeInsets.symmetric(horizontal:10),
         decoration: const BoxDecoration(
             image: DecorationImage(

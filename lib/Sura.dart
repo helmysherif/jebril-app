@@ -1,5 +1,5 @@
 class Surah {
-  final String audio;
+  String audio;
   final String englishName;
   final String arabicName;
   final int number;

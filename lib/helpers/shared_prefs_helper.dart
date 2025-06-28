@@ -44,4 +44,19 @@ class SharedPreferenceHelper {
     final favoritesJson = surahs.map((s) => jsonEncode(s.toJson())).toList();
     await prefs.setStringList(_favoriteSurahsKey, favoritesJson);
   }
+
+  static Future<void> setDownloadStatus(Surah surah, bool isDownloaded) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('downloaded_${surah.uniqueId}', isDownloaded);
+  }
+
+  static Future<bool> getDownloadStatus(Surah surah) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('downloaded_${surah.uniqueId}') ?? false;
+  }
+
+  static Future<void> setDownloadedAudioPath(Surah surah, String path) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('audio_path_${surah.number}', path);
+  }
 }

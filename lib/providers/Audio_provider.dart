@@ -3,6 +3,7 @@ import 'package:just_audio/just_audio.dart';
 import '../Sura.dart';
 class AudioProvider extends ChangeNotifier {
   final AudioPlayer player = AudioPlayer();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isLoading = false;
   bool wasRadioPlaying = false;
   bool isRadio = false;
@@ -59,6 +60,18 @@ class AudioProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('Error playing local file: $e');
+    }
+  }
+  Future<void> playLocalAudio(String filePath) async {
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.setFilePath(filePath);
+      await _audioPlayer.play();
+      // _isPlaying = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error playing local audio: $e');
+      throw e;
     }
   }
   Future<void> pauseRadio() async {

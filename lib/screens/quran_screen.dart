@@ -93,30 +93,77 @@ class _QuranScreenState extends State<QuranScreen> {
         print("Network status changed. Offline: $isOffline");
       });
       print("isOffline => $isOffline");
-      if (isNowOffline) {
+      if (isOffline) {
         _loadOfflineSurahs();
       }
     }
   }
   Future<void> _loadOfflineSurahs() async {
     try {
-      print("Loading offline surahs...");
-      final downloaded = await HelperFunctions.getDownloadedSurahs();
-      print("Downloaded surahs count: ${downloaded.length}");
+      final directory = await getApplicationDocumentsDirectory();
+      final files = Directory(directory.path).listSync();
+      List<Surah> downloadedSurahs = [];
+
+      for (var file in files) {
+        if (file is File && file.path.endsWith('.mp3')) {
+          final fileName = file.path.split('/').last;
+          final numberMatch = RegExp(r'سورة (\d+)').firstMatch(fileName);
+
+          if (numberMatch != null) {
+            final suraNumber = int.parse(numberMatch.group(1)!);
+            final fileSize = await file.length();
+            const minSize = 100000; // Minimum valid file size
+
+            // Only include if file is complete
+            if (fileSize > minSize) {
+              final suraData = suraNamesData.firstWhere(
+                    (s) => s["number"] == suraNumber,
+                orElse: () => {
+                  "englishName": "Unknown",
+                  "arabicName": "غير معروف",
+                  "number": suraNumber
+                },
+              );
+
+              downloadedSurahs.add(Surah(
+                audio: file.path,
+                englishName: suraData["englishName"],
+                arabicName: suraData["arabicName"],
+                number: suraNumber,
+                narrative: "محفوظة محلياً",
+                isDownloaded: true,
+              ));
+            } else {
+              // Delete incomplete files
+              await file.delete();
+            }
+          }
+        }
+      }
 
       if (mounted) {
         setState(() {
-          _offlineSurahs = downloaded;
-          print("Offline surahs updated: ${_offlineSurahs.length}");
+          _offlineSurahs = downloadedSurahs;
         });
       }
     } catch (e) {
-      print("Error loading offline surahs: $e");
+      debugPrint("Error loading offline surahs: $e");
       if (mounted) {
         setState(() {
           _offlineSurahs = [];
         });
       }
+    }
+  }
+  List<Surah> getFilteredSurahs(String searchText) {
+    if (searchText.isEmpty) {
+      return surahAudios;
+    } else {
+      return surahAudios.where((surah) {
+        final englishMatch = surah.englishName.toLowerCase().contains(searchText.toLowerCase());
+        final arabicMatch = surah.arabicName.contains(searchText);
+        return englishMatch || arabicMatch;
+      }).toList();
     }
   }
   @override
@@ -184,25 +231,13 @@ class _QuranScreenState extends State<QuranScreen> {
       arabicName: sura["arabicName"],
       number: sura["number"],
       narrative: "محفوظة محلياً", // "Saved locally"
-      isDownloaded: true,
+      // isDownloaded: true,
     ));
     }
     }
     }
 
     return downloadedSurahs;
-  }
-
-  List<Surah> getFilteredSurahs(String searchText) {
-    if (searchText.isEmpty) {
-      return surahAudios;
-    } else {
-      return surahAudios.where((surah) {
-        final englishMatch = surah.englishName.toLowerCase().contains(searchText.toLowerCase());
-        final arabicMatch = surah.arabicName.contains(searchText);
-        return englishMatch || arabicMatch;
-      }).toList();
-    }
   }
 
 
@@ -336,7 +371,7 @@ class _QuranScreenState extends State<QuranScreen> {
           ),
           if (showRadio)
             SizedBox(
-              height: 180,
+              height: 160,
               child: SuraAudio(
                 suraAudios: isOffline
                     ? _offlineSurahs
@@ -404,6 +439,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
                 if (audioProvider2.isRadioPlaying) {
                   audioProvider2.changeIsRadio(false);
+                  audioProvider2.pauseRadio();
                 }
 
                 pro.changeSuraNumber(suraNumber);
@@ -445,6 +481,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
                 if (audioProvider2.isRadioPlaying) {
                   audioProvider2.changeIsRadio(false);
+                  audioProvider2.pauseRadio();
                 }
 
                 pro.changeSuraNumber(suraNumber);
