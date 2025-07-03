@@ -48,11 +48,15 @@ class _QuranScreenState extends State<QuranScreen> {
   bool isHolyQuranChanged = false;
   late AudioResponse wholeData;
   List<Surah> _offlineSurahs = [];
+  List<Surah> _offlineSurahs2 = [];
   final TextEditingController _searchController = TextEditingController();
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   bool isOffline = false;
   String? suraUniqueName = "";
   Surah? clickedSura;
+  List<Subcategories> offlineNarratives = [];
+  List<Subcategories> selectedNarrative = [];
+  List<Surah> filteredOfflineSurahs = [];
   @override
   void initState() {
     // TODO: implement initState
@@ -98,17 +102,72 @@ class _QuranScreenState extends State<QuranScreen> {
       }
     }
   }
+  String extractNarrativeName(String filePath) {
+    try {
+      // Extract the filename without extension
+      String fileName = filePath.split('/').last.replaceAll('.mp3', '');
+
+      // Split by 'رواية' and take the part after it
+      List<String> parts = fileName.split('رواية');
+      if (parts.length > 1) {
+        // Take the part after 'رواية' and trim whitespace
+        String narrativeWithYear = parts[1].trim();
+
+        // The narrative name is everything before the last '-'
+        // and the year is after the last '-'
+        List<String> narrativeParts = narrativeWithYear.split('-');
+
+        if (narrativeParts.length > 1) {
+          // Join all parts except the last one for the narrative name
+          String narrative = narrativeParts.sublist(0, narrativeParts.length - 1).join('-').trim();
+
+          // Get the year (last part)
+          String year = narrativeParts.last.trim();
+
+          // Combine narrative and year
+          return '$narrative - $year';
+        }
+
+        return narrativeWithYear; // fallback if no hyphen found
+      }
+      return ''; // Return empty if pattern not found
+    } catch (e) {
+      debugPrint('Error extracting narrative: $e');
+      return '';
+    }
+  }
+  List<Subcategories> getUniqueNarratives(List<Surah> surahs) {
+    final uniqueNarratives = <String, Subcategories>{};
+    for (int i = 0; i < surahs.length; i++) {
+      if (surahs[i].narrative != null && surahs[i].narrative!.isNotEmpty) {
+        final narrativeWithYear = extractNarrativeName(surahs[i].audio);
+        if (narrativeWithYear.isNotEmpty && !uniqueNarratives.containsKey(narrativeWithYear)) {
+          uniqueNarratives[narrativeWithYear] = Subcategories(
+            id: narrativeWithYear.hashCode.toString(),
+            arTitle: narrativeWithYear,
+            enTitle: narrativeWithYear,
+          );
+        }
+      }
+    }
+    return uniqueNarratives.values.toList()..sort((a, b) => a.arTitle.compareTo(b.arTitle));
+  }
+  List<Surah> _filterSurahsByNarrative(List<Surah> surahs, List<Subcategories> narrative) {
+    if (narrative.isEmpty) {
+      return surahs;
+    }
+    return surahs.where((sura) => sura.narrative == narrative[0].arTitle).toList();
+  }
   Future<void> _loadOfflineSurahs() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final files = Directory(directory.path).listSync();
       List<Surah> downloadedSurahs = [];
-
       for (var file in files) {
         if (file is File && file.path.endsWith('.mp3')) {
           final fileName = file.path.split('/').last;
           final numberMatch = RegExp(r'سورة (\d+)').firstMatch(fileName);
-
+          String narrative = extractNarrativeName(file.path);
           if (numberMatch != null) {
             final suraNumber = int.parse(numberMatch.group(1)!);
             final fileSize = await file.length();
@@ -124,13 +183,12 @@ class _QuranScreenState extends State<QuranScreen> {
                   "number": suraNumber
                 },
               );
-
               downloadedSurahs.add(Surah(
                 audio: file.path,
                 englishName: suraData["englishName"],
                 arabicName: suraData["arabicName"],
                 number: suraNumber,
-                narrative: "محفوظة محلياً",
+                narrative: narrative ?? "",
                 isDownloaded: true,
               ));
             } else {
@@ -143,7 +201,11 @@ class _QuranScreenState extends State<QuranScreen> {
 
       if (mounted) {
         setState(() {
-          _offlineSurahs = downloadedSurahs;
+          _offlineSurahs2 = downloadedSurahs;
+          offlineNarratives = getUniqueNarratives(downloadedSurahs);
+          selectedNarrative = offlineNarratives.isNotEmpty ? [offlineNarratives.first] : [];
+          _offlineSurahs = _filterSurahsByNarrative(downloadedSurahs, selectedNarrative);
+          print("_offlineSurahs => ${_offlineSurahs[0].audio}");
         });
       }
     } catch (e) {
@@ -151,6 +213,8 @@ class _QuranScreenState extends State<QuranScreen> {
       if (mounted) {
         setState(() {
           _offlineSurahs = [];
+          offlineNarratives = [];
+          filteredOfflineSurahs = [];
         });
       }
     }
@@ -230,8 +294,8 @@ class _QuranScreenState extends State<QuranScreen> {
       englishName: sura["englishName"],
       arabicName: sura["arabicName"],
       number: sura["number"],
-      narrative: "محفوظة محلياً", // "Saved locally"
-      // isDownloaded: true,
+      narrative: sura["narrative"], // "Saved locally"
+      isDownloaded: true,
     ));
     }
     }
@@ -325,29 +389,42 @@ class _QuranScreenState extends State<QuranScreen> {
                             ],
                           ),
                           child: CustomDropdown(
-                            items: holyQuranData,
-                            value: selectedQuran,
+                            items: isOffline ? offlineNarratives : holyQuranData,
+                            value: isOffline ? selectedNarrative : selectedQuran,
                             onPressed: (Subcategories sura) async {
-                              setState(() {
-                                isHolyQuranChanged = true;
-                                // Close SuraAudio widget when changing recitation (non-radio)
-                                if (!audioProvider2.isRadioPlaying) {
+                              if(!isOffline){
+                                setState(() {
+                                  isHolyQuranChanged = true;
+                                  // Close SuraAudio widget when changing recitation (non-radio)
+                                  if (!audioProvider2.isRadioPlaying) {
+                                    showRadio = false;
+                                    isPlaying = false;
+                                    currentlyPlayingIndex = null;
+                                  }
+                                });
+                                await Future.delayed(
+                                    const Duration(milliseconds: 300));
+                                var holyQuranDataLength = await GetAudiosApi
+                                    .getNarrativeAudiosCount(
+                                    "holy_quran", selectedQuran[0].id);
+                                setState(() {
+                                  selectedQuran = [sura];
+                                  surahAudios = generateSurahAudioUrls(
+                                      sura, holyQuranDataLength.length);
+                                  isHolyQuranChanged = false;
+                                });
+                              } else {
+                                setState(() {
                                   showRadio = false;
                                   isPlaying = false;
                                   currentlyPlayingIndex = null;
-                                }
-                              });
-                              await Future.delayed(
-                                  const Duration(milliseconds: 300));
-                              var holyQuranDataLength = await GetAudiosApi
-                                  .getNarrativeAudiosCount(
-                                  "holy_quran", selectedQuran[0].id);
-                              setState(() {
-                                selectedQuran = [sura];
-                                surahAudios = generateSurahAudioUrls(
-                                    sura, holyQuranDataLength.length);
-                                isHolyQuranChanged = false;
-                              });
+                                  suraUniqueName = null;
+                                  selectedNarrative = [sura];
+                                  _offlineSurahs = _filterSurahsByNarrative(_offlineSurahs2, selectedNarrative);
+                                  // print("_offlineSurahs => ${_offlineSurahs[0].audio}");
+                                });
+                                // audioProvider2.resetPlayer(); // Add this to clear player state
+                              }
                             },
                           ),
                         ),
@@ -381,7 +458,9 @@ class _QuranScreenState extends State<QuranScreen> {
                 isPlaying: isPlaying,
                 isOffline: isOffline,
                 uniqueId: suraUniqueName,
-                rewayaName:selectedQuran.isNotEmpty ? selectedQuran[0].arTitle : "",
+                rewayaName:isOffline
+                    ? (selectedNarrative.isNotEmpty ? selectedNarrative[0].arTitle : "")
+                    : (selectedQuran.isNotEmpty ? selectedQuran[0].arTitle : ""),
                 isRadioPlaying: false,
                 radioUrl: null,
                 onPause: (bool stat) {
@@ -434,7 +513,8 @@ class _QuranScreenState extends State<QuranScreen> {
                 } else {
                   suraUniqueName = uniqueName;
                   isPlaying = true;
-                  currentlyPlayingIndex = suraNumber;
+                  // currentlyPlayingIndex = suraNumber;
+                  currentlyPlayingIndex = _offlineSurahs.indexWhere((s) => s.number == suraNumber);
                 }
 
                 if (audioProvider2.isRadioPlaying) {
@@ -448,6 +528,12 @@ class _QuranScreenState extends State<QuranScreen> {
             },
             addToFavorite: (int index) {
               print("index => $index");
+            },
+            onDeleted:(){
+              setState(() {
+                _offlineSurahs.removeAt(index);
+                showRadio = false;
+              });
             },
             isPlaying: suraUniqueName == sura.uniqueId &&
                 isPlaying &&

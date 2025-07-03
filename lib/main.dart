@@ -1,6 +1,8 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:jebril_app/providers/Audio_provider.dart';
+import 'package:jebril_app/providers/audio_handler.dart';
 import 'package:jebril_app/providers/langs_provider.dart';
 import 'package:jebril_app/providers/quran_data_provider.dart';
 import 'package:jebril_app/providers/sura_details_provider.dart';
@@ -18,7 +20,9 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:jebril_app/screens/tarawih.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // await _initAudioService();
   runApp(
     MultiProvider(
       providers: [
@@ -30,14 +34,25 @@ void main() {
             create: (context) => RouteObserver<ModalRoute>())
         // Add more providers here as needed
       ],
-      child: const MyApp(),
+      child: MyApp(),
     ),
   );
 }
-
+Future<void> _initAudioService() async {
+  await AudioService.init(
+    builder: () => MyAudioHandler(),
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'jebril_radio_channel',
+      androidNotificationChannelName: 'Jebril Radio',
+      androidNotificationOngoing: true,
+      androidStopForegroundOnPause: true,
+      androidNotificationIcon: 'mipmap/ic_launcher',
+      androidShowNotificationBadge: true,
+    ),
+  );
+}
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {

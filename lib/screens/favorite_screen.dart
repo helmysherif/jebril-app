@@ -86,14 +86,26 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                           audioProvider.wasRadioPlaying = false;
                         }
                         currentlyPlayingId = suraUniqueId;
-                        currentlyPlayingIndex = suraNumber;
-                        // pro.changeSuraNumber(suraNumber);
+                        currentlyPlayingIndex = index;
+                        pro.changeSuraNumber(suraNumber);
                         showRadio = true;
                         isPlaying = true;
                       }
                     });
                   },
+                  onUnFavorite:(){
+                    setState(() {
+                      _favoriteSurahs.removeAt(index);
+                      if (currentlyPlayingId == sura.uniqueId) {
+                        currentlyPlayingId = null;
+                        isPlaying = false;
+                        showRadio = false;
+                      }
+                      showRadio = false;
+                    });
+                  },
                   subTitle: sura.narrative,
+                  isFavorite: true,
                 );
               },
             ),
@@ -105,9 +117,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 suraAudios: _favoriteSurahs,
                 isFavorite:true,
                 uniqueId:currentlyPlayingId,
-                suraNumber: currentlyPlayingIndex != null
-                    ? _favoriteSurahs.indexWhere((s) => s.number == currentlyPlayingIndex) + 1
-                    : 1,
+                suraNumber: pro.suraNumber,
                 suraIndex: currentlyPlayingIndex ?? 0,
                 isPlaying: isPlaying,
                 rewayaName:_favoriteSurahs[suraIndex].narrative ?? "",
@@ -123,9 +133,9 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 onTrackChanged: (int newIndex , int suraNumber , String uniqueName) {
                   if(mounted){
                     setState(() {
-                      currentlyPlayingIndex = suraNumber;
-                      suraIndex = newIndex - 1;
-                      currentlyPlayingId = _favoriteSurahs[newIndex - 1].uniqueId;
+                      currentlyPlayingIndex = newIndex;
+                      suraIndex = newIndex;
+                      currentlyPlayingId = _favoriteSurahs[newIndex].uniqueId;
                       pro.changeIndex(newIndex);
                     });
                   }

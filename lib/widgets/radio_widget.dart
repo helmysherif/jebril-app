@@ -1,9 +1,13 @@
+import 'dart:async';
+
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:jebril_app/Sura.dart';
 import 'package:jebril_app/providers/Audio_provider.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../providers/audio_handler.dart';
 import '../providers/langs_provider.dart';
 import 'custom_icon_button.dart';
 class RadioWidget extends StatefulWidget {
@@ -23,12 +27,13 @@ class _QuranRadioWidgetState extends State<RadioWidget>
     with WidgetsBindingObserver {
   final player = AudioPlayer();
   late int _currentIndex;
-
+  late final MyAudioHandler audioHandler;
   bool get isRadio => widget.type == 'radio';
   bool _isPlaying = false;
   bool _isBuffering = false;
   Duration position = Duration.zero;
   Duration duration = Duration.zero;
+  StreamSubscription<PlaybackState>? _playbackStateSubscription;
   late AudioProvider audioProvider;
   String formatDuration(Duration d) {
     final minutes = d.inMinutes.remainder(60);
@@ -47,13 +52,51 @@ class _QuranRadioWidgetState extends State<RadioWidget>
   void handleSeek(double value) {
     player.seek(Duration(seconds: value.toInt()));
   }
-
+  final player2 = AudioPlayer();
   @override
   void initState() {
+    // super.initState();
+    // _currentIndex = widget.initialIndex;
+    // _initAudioService();
+    // WidgetsBinding.instance.addObserver(this);
+    // _initPlayer();
     super.initState();
-    _currentIndex = widget.initialIndex;
     WidgetsBinding.instance.addObserver(this);
-    _initPlayer();
+    _initAudioService().then((_) {
+      _playRadio();
+    });
+  }
+
+  Future<void> _initAudioService() async {
+    final myHandler = audioHandler as MyAudioHandler;
+    audioHandler = await AudioService.init(
+      builder: () => MyAudioHandler(),
+      config: AudioServiceConfig(
+        androidNotificationChannelId: 'com.yourcompany.jebril_app.radio',
+        androidNotificationChannelName: 'Radio Playback',
+        androidNotificationOngoing: true,
+        androidStopForegroundOnPause: false,
+        androidNotificationIcon: 'mipmap/ic_launcher',
+      ),
+    );
+
+    // Subscribe to playback state
+    _playbackStateSubscription = audioHandler.playbackState.listen((state) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = state.playing;
+          _isBuffering = state.processingState == AudioProcessingState.buffering;
+        });
+      }
+    });
+
+    // Set and start playing the radio
+    final radioUrl = audioProvider.radioAudio.audio;
+    await (audioHandler as MyAudioHandler).setRadioSource(
+      audioProvider.radioAudio.audio,
+      'راديو الشيخ جبريل - قرآن',
+    );
+    await audioHandler.play();
   }
 
   Future<void> _initPlayer() async {
@@ -77,7 +120,7 @@ class _QuranRadioWidgetState extends State<RadioWidget>
       await player.setAudioSource(
         AudioSource.uri(
           Uri.parse(radioUrl),
-          tag: "راديو الشيخ جبريل - قرآن"
+          // tag: "راديو الشيخ جبريل - قرآن"
         ),
         initialPosition: Duration.zero,
         preload: true,
@@ -103,8 +146,19 @@ class _QuranRadioWidgetState extends State<RadioWidget>
       debugPrint('Error loading track: $e');
     }
   }
+  Future<void> _playRadio() async {
+    final audioProvider = Provider.of<AudioProvider>(context, listen: false);
+    final handler = audioHandler as MyAudioHandler;
 
-
+    await handler.setRadioSource(
+      audioProvider.radioAudio.audio,
+      'راديو الشيخ جبريل - قرآن',
+    );
+    await audioHandler.play();
+  }
+  Future<void> _pauseRadio() async {
+    await audioHandler.pause();
+  }
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -366,8 +420,10 @@ class _QuranRadioWidgetState extends State<RadioWidget>
                                       color: Colors.white),
                                   onPressed: () async {
                                     if (audioProvider.isRadioPlaying) {
+                                      // await audioHandler.pause();
                                       await audioProvider.pauseRadio();
                                     } else {
+                                      // await audioHandler.play();
                                       await audioProvider.playRadio();
                                     }
                                   },

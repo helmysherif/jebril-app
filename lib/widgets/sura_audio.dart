@@ -320,8 +320,8 @@ class _SuraAudioState extends State<SuraAudio> {
       }
 
       final sura = clickedSura[0];
+      print("suraAudio => ${sura.audio}");
       final isDownloaded = await _checkIfSuraDownloaded(sura);
-
       // Use downloaded version if available
       if (isDownloaded) {
         final filePath = await _getDownloadedFilePath(sura);
@@ -353,7 +353,6 @@ class _SuraAudioState extends State<SuraAudio> {
   }
   Future<void> _loadOnlineWithRetries(String url) async {
     bool success = false;
-
     for (int i = 0; i < _maxRetries; i++) {
       try {
         await player.setAudioSource(
@@ -380,10 +379,9 @@ class _SuraAudioState extends State<SuraAudio> {
   }
   Future<String> _getDownloadedFilePath(Surah sura) async {
     final directory = await getApplicationDocumentsDirectory();
-    if (sura.narrative != null) {
-      return '${directory.path}/سورة ${sura.arabicName} برواية ${sura.narrative}.mp3';
-    }
-    return '${directory.path}/سورة ${sura.arabicName}.mp3';
+    return sura.narrative != null
+        ? '${directory.path}/سورة ${sura.number} ${sura.arabicName} برواية ${sura.narrative}.mp3'
+        : '${directory.path}/سورة ${sura.arabicName}${sura.number}.mp3';
   }
   Future<void> _playDownloadedVersion(String path) async {
     try {
@@ -459,7 +457,7 @@ class _SuraAudioState extends State<SuraAudio> {
         }
         clickedSura = [widget.suraAudios[prevIndex]];
         print("prev clickedSura => ${clickedSura[0].arabicName}");
-        _currentIndex = prevIndex + 1;
+        _currentIndex = widget.isFavorite ? prevIndex : prevIndex + 1;
         widget.onTrackChanged(_currentIndex, clickedSura[0].number , clickedSura[0].uniqueId);
         print("prev currentIndex => $currentIndex");
         // Load and play

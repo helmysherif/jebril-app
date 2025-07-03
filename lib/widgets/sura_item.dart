@@ -23,6 +23,9 @@ class SuraItem extends StatefulWidget {
   final String? subTitle;
   final bool isPrayer;
   final bool isOffline;
+  final VoidCallback? onDeleted;
+  final bool isFavorite;
+  final VoidCallback? onUnFavorite;
   const SuraItem(
       {super.key,
       this.isPrayer = false,
@@ -30,6 +33,9 @@ class SuraItem extends StatefulWidget {
       required this.suraDetails,
       required this.onAudioPlay,
       this.subTitle,
+        this.onUnFavorite,
+        this.onDeleted,
+        this.isFavorite = false,
         this.isOffline = false,
       this.addToFavorite});
 
@@ -76,6 +82,7 @@ class _SuraItemState extends State<SuraItem> {
   @override
   void initState() {
     super.initState();
+    _isFavorite = widget.isFavorite;
     _checkFavoriteStatus();
     _loadDownloadStatus();
     WidgetsFlutterBinding.ensureInitialized();
@@ -99,7 +106,14 @@ class _SuraItemState extends State<SuraItem> {
   void didUpdateWidget(SuraItem oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.suraDetails.number != widget.suraDetails.number) {
-      _checkIfDownloaded(); // Check when widget updates with new sura
+      _checkIfDownloaded();
+    }
+    if (oldWidget.isFavorite != widget.isFavorite) {
+      if (mounted) {
+        setState(() {
+          _isFavorite = widget.isFavorite;
+        });
+      }
     }
   }
   Future<void> _loadDownloadStatus() async {
@@ -113,16 +127,67 @@ class _SuraItemState extends State<SuraItem> {
     }
   }
   Future<void> _toggleFavorite() async {
-    print("_isFavorite => $_isFavorite");
-    if (_isFavorite) {
-      await SharedPreferenceHelper.removeFavoriteSurah(widget.suraDetails);
-    } else {
-      await SharedPreferenceHelper.addFavoriteSurah(widget.suraDetails);
-    }
-    if (mounted) {
-      setState(() {
-        _isFavorite = !_isFavorite;
-      });
+    try {
+      if (!_isFavorite) {
+        // Add to favorites
+        await SharedPreferenceHelper.addFavoriteSurah(widget.suraDetails);
+        if (mounted) {
+          setState(() {
+            _isFavorite = true;
+          });
+        }
+      } else {
+        // Show confirmation dialog
+        final shouldRemove = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Remove from Favorites'),
+              content: const Text(
+                  'Are you sure you want to remove this surah from favorites?'),
+              actions: [
+                TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () => Navigator.of(context).pop(false),
+                ),
+                TextButton(
+                  child: const Text('Remove',
+                      style: TextStyle(color: Colors.red)),
+                  onPressed: (){
+                    Navigator.of(context).pop(true);
+                    if(!widget.isFavorite){
+                      setState(() {
+                        _isFavorite = false;
+                      });
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        ) ??
+            false;
+
+        if (shouldRemove) {
+          await SharedPreferenceHelper.removeFavoriteSurah(widget.suraDetails);
+          // if (mounted) {
+          //   setState(() {
+          //     _isFavorite = false;
+          //   });
+          // }
+          widget.onUnFavorite?.call();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error toggling favorite: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred while updating favorites.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -201,29 +266,32 @@ class _SuraItemState extends State<SuraItem> {
     widget.onAudioPlay(widget.suraDetails.number, widget.suraDetails.uniqueId);
   }
 
-  Future<void> _deleteDownloadedAudio() async {
+  Future<bool> _deleteDownloadedAudio() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final filePath = generateFilePath(directory);
-
       final file = File(filePath);
 
       if (await file.exists()) {
         await file.delete();
+        await SharedPreferenceHelper.setDownloadStatus(widget.suraDetails, false);
+
         if (mounted) {
           setState(() {
             widget.suraDetails.isDownloaded = false;
             _downloadProgress = 0;
           });
         }
-        await SharedPreferenceHelper.setDownloadStatus(widget.suraDetails, false);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('تم حذف السورة'),
             backgroundColor: Colors.green,
           ),
         );
+        return true;
       }
+      return false;
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -233,6 +301,7 @@ class _SuraItemState extends State<SuraItem> {
           ),
         );
       }
+      return false;
     }
   }
 
@@ -711,22 +780,22 @@ class _SuraItemState extends State<SuraItem> {
     );
   }
   Widget _buildDownloadControl() {
-    if (widget.suraDetails.isDownloaded) {
-      return Container(
-        width: 35,
-        height: 35,
-        decoration: BoxDecoration(
-          color: const Color(0xffF5F4F9),
-          borderRadius: BorderRadius.circular(25),
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.delete_outline, size: 21),
-          onPressed: _showDeleteConfirmationDialog,
-          padding: EdgeInsets.zero,
-        ),
-      );
-    }
-    else if (_isDownloading || _isDownloadPaused || _isResuming) {
+    // if (widget.suraDetails.isDownloaded) {
+    //   return Container(
+    //     width: 35,
+    //     height: 35,
+    //     decoration: BoxDecoration(
+    //       color: const Color(0xffF5F4F9),
+    //       borderRadius: BorderRadius.circular(25),
+    //     ),
+    //     child: IconButton(
+    //       icon: const Icon(Icons.delete_outline, size: 21),
+    //       onPressed: _showDeleteConfirmationDialog,
+    //       padding: EdgeInsets.zero,
+    //     ),
+    //   );
+    // }
+    if (_isDownloading || _isDownloadPaused || _isResuming) {
       return Container(
         width: 35,
         height: 35,
@@ -760,7 +829,7 @@ class _SuraItemState extends State<SuraItem> {
           ],
         ),
       );
-    } else {
+    } else if(!widget.suraDetails.isDownloaded) {
       return Container(
         width: 35,
         height: 35,
@@ -775,158 +844,208 @@ class _SuraItemState extends State<SuraItem> {
           padding: EdgeInsets.zero,
         ),
       );
+    } else {
+      return Container();
     }
   }
   @override
   Widget build(BuildContext context) {
     var pro = Provider.of<LangsProvider>(context);
     AudioProvider audioProvider = Provider.of<AudioProvider>(context);
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+    Widget buildSuraItem(){
+      return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+          margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: const [
+              BoxShadow(
+                color: Color.fromRGBO(0, 0, 0, 0.05),
+                spreadRadius: 0, // How far the shadow spreads
+                blurRadius: 15, // How soft the shadow is
+                offset: Offset(0, 5), // Changes position of shadow (x,y)
+              )
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 45,
+                height: 45,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF0A4D41), // Replace with the top color you picked
+                      Color(0xAE145347),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text("${widget.suraDetails.number}",
+                      style: GoogleFonts.amiri(
+                          fontSize: 23,
+                          color: const Color(0xffE7DB9D),
+                          fontWeight: FontWeight.w500),
+                      textAlign: TextAlign.center,
+                      textScaler: const TextScaler.linear(1.0)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  widget.subTitle != null
+                      ? Text(widget.subTitle!,
+                      style: GoogleFonts.cairo(
+                          fontSize: 14, fontWeight: FontWeight.w600),
+                      textAlign: TextAlign.center,
+                      textScaler: const TextScaler.linear(1.0))
+                      : Container(),
+                  Text(
+                      pro.language == 'en'
+                          ? widget.suraDetails.englishName
+                          : widget.suraDetails.arabicName,
+                      // "${suraDetails.number}",
+                      style: !widget.isPrayer
+                          ? GoogleFonts.amiri(
+                          fontSize: pro.language == 'en' ? 23 : 27,
+                          fontWeight: FontWeight.w600)
+                          : GoogleFonts.cairo(
+                          fontSize: 18, fontWeight: FontWeight.w600),
+                      textAlign: TextAlign.center,
+                      textScaler: const TextScaler.linear(1.0))
+                ],
+              ),
+              const Spacer(),
+              // Text("$_isDownloadPaused"),
+              _buildDownloadControl(),
+              const SizedBox(width: 10),
+              // Text("$_isDownloadPaused"),
+              // Text("${widget.suraDetails.isDownloaded}"),
+              Container(
+                width: 35,
+                height: 35,
+                decoration: BoxDecoration(
+                    color: const Color(0xffF5F4F9),
+                    borderRadius: BorderRadius.circular(25)),
+                child: IconButton(
+                  icon: Icon(
+                      widget.isPlaying ? Icons.pause : Icons.play_arrow_rounded),
+                  iconSize: 27,
+                  onPressed: () async {
+                    audioProvider.wasRadioPlaying = false;
+                    audioProvider.changeIsRadio(false);
+                    if (widget.suraDetails.isDownloaded) {
+                      await _playDownloadedAudio();
+                    } else {
+                      await _playOnlineAudio();
+                    }
+                    // final audioProvider = Provider.of<AudioProvider>(context, listen: false);
+                    //
+                    // // Stop radio if playing
+                    // if (audioProvider.isRadioPlaying) {
+                    //   await audioProvider.pauseRadio();
+                    //   audioProvider.wasRadioPlaying = false;
+                    //   audioProvider.changeIsRadio(false);
+                    // }
+                    //
+                    // if (_isDownloaded) {
+                    //   try {
+                    //     // Play downloaded file
+                    //     final directory = await getApplicationDocumentsDirectory();
+                    //     String filePath;
+                    //
+                    //     if (widget.suraDetails.narrative != null) {
+                    //       filePath = '${directory.path}/سورة ${widget.suraDetails.arabicName} برواية ${widget.suraDetails.narrative}.mp3';
+                    //     } else {
+                    //       filePath = '${directory.path}/سورة ${widget.suraDetails.arabicName}.mp3';
+                    //     }
+                    //
+                    //     widget.onAudioPlay(widget.suraDetails.number, widget.suraDetails.uniqueId);
+                    //   } catch (e) {
+                    //     ScaffoldMessenger.of(context).showSnackBar(
+                    //       SnackBar(content: Text('Error playing downloaded file: $e')),
+                    //     );
+                    //   }
+                    // } else {
+                    //   // Play online audio
+                    //   widget.onAudioPlay(widget.suraDetails.number, widget.suraDetails.uniqueId);
+                    // }
+                  },
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                width: 35,
+                height: 35,
+                decoration: BoxDecoration(
+                    color: const Color(0xffF5F4F9),
+                    borderRadius: BorderRadius.circular(25)),
+                child: IconButton(
+                  icon: Icon(
+                    _isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: _isFavorite ? Color(0xff00514A) : null,
+                  ),
+                  iconSize: 21,
+                  onPressed: _toggleFavorite,
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ));
+    }
+    return !widget.suraDetails.isDownloaded ? buildSuraItem() :
+    Dismissible(
+      key: Key('sura_${widget.suraDetails.uniqueId}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
         margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.red,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: const [
-            BoxShadow(
-              color: Color.fromRGBO(0, 0, 0, 0.05),
-              spreadRadius: 0, // How far the shadow spreads
-              blurRadius: 15, // How soft the shadow is
-              offset: Offset(0, 5), // Changes position of shadow (x,y)
-            )
-          ],
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 45,
-              height: 45,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF0A4D41), // Replace with the top color you picked
-                    Color(0xAE145347),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      confirmDismiss: (direction) async {
+        return await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Delete Surah'),
+              content: const Text(
+                  'Are you sure you want to delete this downloaded surah?'),
+              actions: [
+                TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () => Navigator.of(context).pop(false),
                 ),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text("${widget.suraDetails.number}",
-                    style: GoogleFonts.amiri(
-                        fontSize: 23,
-                        color: const Color(0xffE7DB9D),
-                        fontWeight: FontWeight.w500),
-                    textAlign: TextAlign.center,
-                    textScaler: const TextScaler.linear(1.0)),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                widget.subTitle != null
-                    ? Text(widget.subTitle!,
-                        style: GoogleFonts.cairo(
-                            fontSize: 14, fontWeight: FontWeight.w600),
-                        textAlign: TextAlign.center,
-                        textScaler: const TextScaler.linear(1.0))
-                    : Container(),
-                Text(
-                    pro.language == 'en'
-                        ? widget.suraDetails.englishName
-                        : widget.suraDetails.arabicName,
-                    // "${suraDetails.number}",
-                    style: !widget.isPrayer
-                        ? GoogleFonts.amiri(
-                            fontSize: pro.language == 'en' ? 23 : 27,
-                            fontWeight: FontWeight.w600)
-                        : GoogleFonts.cairo(
-                            fontSize: 18, fontWeight: FontWeight.w600),
-                    textAlign: TextAlign.center,
-                    textScaler: const TextScaler.linear(1.0))
+                TextButton(
+                  child: const Text('Delete',
+                      style: TextStyle(color: Colors.red)),
+                  onPressed: () => Navigator.of(context).pop(true),
+                ),
               ],
-            ),
-            const Spacer(),
-            // Text("$_isDownloadPaused"),
-            _buildDownloadControl(),
-            const SizedBox(width: 10),
-            Text("$_isDownloadPaused"),
-            // Text("${widget.suraDetails.isDownloaded}"),
-            Container(
-              width: 35,
-              height: 35,
-              decoration: BoxDecoration(
-                  color: const Color(0xffF5F4F9),
-                  borderRadius: BorderRadius.circular(25)),
-              child: IconButton(
-                icon: Icon(
-                    widget.isPlaying ? Icons.pause : Icons.play_arrow_rounded),
-                iconSize: 27,
-                onPressed: () async {
-                  audioProvider.wasRadioPlaying = false;
-                  audioProvider.changeIsRadio(false);
-                  print("sura audio => ${widget.suraDetails.audio}");
-                  if (widget.suraDetails.isDownloaded) {
-                    await _playDownloadedAudio();
-                  } else {
-                    await _playOnlineAudio();
-                  }
-                  // final audioProvider = Provider.of<AudioProvider>(context, listen: false);
-                  //
-                  // // Stop radio if playing
-                  // if (audioProvider.isRadioPlaying) {
-                  //   await audioProvider.pauseRadio();
-                  //   audioProvider.wasRadioPlaying = false;
-                  //   audioProvider.changeIsRadio(false);
-                  // }
-                  //
-                  // if (_isDownloaded) {
-                  //   try {
-                  //     // Play downloaded file
-                  //     final directory = await getApplicationDocumentsDirectory();
-                  //     String filePath;
-                  //
-                  //     if (widget.suraDetails.narrative != null) {
-                  //       filePath = '${directory.path}/سورة ${widget.suraDetails.arabicName} برواية ${widget.suraDetails.narrative}.mp3';
-                  //     } else {
-                  //       filePath = '${directory.path}/سورة ${widget.suraDetails.arabicName}.mp3';
-                  //     }
-                  //
-                  //     widget.onAudioPlay(widget.suraDetails.number, widget.suraDetails.uniqueId);
-                  //   } catch (e) {
-                  //     ScaffoldMessenger.of(context).showSnackBar(
-                  //       SnackBar(content: Text('Error playing downloaded file: $e')),
-                  //     );
-                  //   }
-                  // } else {
-                  //   // Play online audio
-                  //   widget.onAudioPlay(widget.suraDetails.number, widget.suraDetails.uniqueId);
-                  // }
-                },
-                padding: EdgeInsets.zero,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Container(
-              width: 35,
-              height: 35,
-              decoration: BoxDecoration(
-                  color: const Color(0xffF5F4F9),
-                  borderRadius: BorderRadius.circular(25)),
-              child: IconButton(
-                icon: Icon(
-                  _isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: _isFavorite ? Color(0xff00514A) : null,
-                ),
-                iconSize: 21,
-                onPressed: _toggleFavorite,
-                padding: EdgeInsets.zero,
-              ),
-            ),
-          ],
-        ));
+            );
+          },
+        );
+      },
+      onDismissed: (direction) async {
+        final success = await _deleteDownloadedAudio();
+        if (success) {
+          widget.onDeleted?.call(); // remove item from parent list
+        } else if (mounted) {
+          setState(() {}); // Refresh if deletion failed
+        }
+      },
+      child: buildSuraItem(),
+    );
   }
 }
